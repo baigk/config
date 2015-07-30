@@ -1,8 +1,15 @@
 #!/bin/bash
 set -x
 
-device=eth0
+device=eth1
 bridge=mgmt
+gw=192.168.50.1
+
+function install_soft()
+{
+   apt-get update
+   apt-get install bridge-utils qemu-utils libvirt-bin qemu-system-x86
+}
 function is_brigde_exit()
 {
     ret=$(brctl show | grep $bridge | wc -l)
@@ -25,13 +32,13 @@ function create_briage()
         ip addr add $ip dev $bridge
     done
 
-    route add default gw 192.168.124.1
+    route add default gw $gw
 }
 
 function is_base_vm_exist()
 {
     ret=$(virsh list | awk  '$2=="host1" {print $2}' | wc -l)
-    if [ $ret gt 0 ]; then
+    if [ "$ret" gt "0" ]; then
         /bin/true
     else
         /bin/false
@@ -73,8 +80,6 @@ function main()
     if ! is_brigde_exit; then
         create_briage
     fi
-
-    exit 
     
     if ! is_base_vm_exist; then
         qemu-create -f qcow2 base 30G
