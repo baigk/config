@@ -8,12 +8,14 @@ mkdir -p ~/.vim/plugin ~/.vim/doc
 
 vim-addons install omnicppcomplete taglist winmanager minibufexplorer project
 
+cp -rf ../plugin/* ~/.vim  -rf
+
 git clone https://github.com/baigk/tagbar.git 
 
-cp tagbar/autoload /root/.vim/
-cp tagbar/doc /root/.vim/
-cp tagbar/plugin /root/.vim/
-cp tagbar/syntax /root/.vim/ -rf
+cp tagbar/autoload ~/.vim -rf
+cp tagbar/doc ~/. -rf
+cp tagbar/plugin ~/.vim -rf
+cp tagbar/syntax ~/.vim -rf
 
-rm -rf tarbar
+rm -rf tagbar
 

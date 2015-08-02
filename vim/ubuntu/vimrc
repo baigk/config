@@ -52,7 +52,7 @@ set linebreak        " 整词换行
 set whichwrap=b,s,<,>,[,] " 光标从行首和行末时可以跳到另一行去
 "set hidden " Hide buffers when they are abandoned
 "set mouse=a            " Enable mouse usage (all modes)    "使用鼠标
-set number            " Enable line number    "显示行号
+"set number            " Enable line number    "显示行号
 "set previewwindow    " 标识预览窗口
 set history=50        " set command history to 50    "历史记录50条
 
@@ -69,6 +69,12 @@ set showmode        " 命令行显示vim当前模式
 set incsearch        " 输入字符串就显示匹配点
 set hlsearch
 
+let g:SuperTabRetainCompletionType=2
+let g:SuperTabDefaultCompletionType=""
+let g:pydiction_location='~/.vim/plugin/complete-dict'  let g
+let g:pydiction_menu_height = 3
+
+set foldmethod=indent
 
 "--ctags setting--
 " 按下F5重新生成tag文件，并更新taglist
@@ -76,7 +82,7 @@ map <F5> :!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<CR><CR> :TlistUpda
 imap <F5> <ESC>:!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<CR><CR> :TlistUpdate<CR>
 set tags=tags
 set tags+=./tags "add current directory's generated tags file
-
+set autochdir
 
 "-- omnicppcomplete setting --
 " 按下F3自动补全代码，注意该映射语句后不能有其他字符，包括tab；否则按下F3会自动补全一些乱码
@@ -105,12 +111,12 @@ let Tlist_Exit_OnlyWindow=1 "当taglist是最后一个分割窗口时，自动推出vim
 "是否一直处理tags.1:处理;0:不处理
 let Tlist_Process_File_Always=1 "实时更新tags
 let Tlist_Inc_Winwidth=0
+map <F7> :TlistToggle<CR>
 
 "-- WinManager setting --
 let g:winManagerWindowLayout='FileExplorer|TagList' " 设置我们要管理的插件
 "let g:persistentBehaviour=0 " 如果所有编辑文件都关闭了，退出vim
-nmap wm :WMToggle<cr>
-
+nmap <C-O> :WMToggle<cr>
 
 " -- MiniBufferExplorer --
 let g:miniBufExplMapWindowNavVim = 1 " 按下Ctrl+h/j/k/l，可以切换到当前窗口的上下左右窗口
@@ -124,21 +130,20 @@ set foldmethod=syntax " 用语法高亮来定义折叠
 set foldlevel=100 " 启动vim时不要自动折叠代码
 set foldcolumn=0 " 设置折叠栏宽度
 
-
-"-- QuickFix setting --
-" 按下F6，执行make clean
-map <F6> :make clean<CR><CR><CR>
-" 按下F7，执行make编译程序，并打开quickfix窗口，显示编译信息
-map <F7> :make<CR><CR><CR> :copen<CR><CR>
-" 按下F8，光标移到上一个错误所在的行
-map <F8> :cp<CR>
-" 按下F9，光标移到下一个错误所在的行
-map <F9> :cn<CR>
-" 以上的映射是使上面的快捷键在插入模式下也能用
-imap <F6> <ESC>:make clean<CR><CR><CR>
-imap <F7> <ESC>:make<CR><CR><CR> :copen<CR><CR>
-imap <F8> <ESC>:cp<CR>
-imap <F9> <ESC>:cn<CR>
+""-- QuickFix setting --
+"" 按下F6，执行make clean
+"map <F6> :make clean<CR><CR><CR>
+"" 按下F7，执行make编译程序，并打开quickfix窗口，显示编译信息
+"map <F7> :make<CR><CR><CR> :copen<CR><CR>
+"" 按下F8，光标移到上一个错误所在的行
+"map <F8> :cp<CR>
+"" 按下F9，光标移到下一个错误所在的行
+"map <F9> :cn<CR>
+"" 以上的映射是使上面的快捷键在插入模式下也能用
+"imap <F6> <ESC>:make clean<CR><CR><CR>
+"imap <F7> <ESC>:make<CR><CR><CR> :copen<CR><CR>
+"imap <F8> <ESC>:cp<CR>
+"imap <F9> <ESC>:cn<CR>
 
 
 "-- Cscope setting --
@@ -155,17 +160,21 @@ if has("cscope")
     endif
     set csverb
 endif
-map <F4> :cs add ./cscope.out .<CR><CR><CR> :cs reset<CR>
+
+map <F4> :!find . -iname '*.c' -o -iname '*.cpp' -o -iname '*.h' -o -iname '*.hpp'  -o -iname '*.py'> cscope.files<CR> 
+        \ :!cscope -b -i cscope.files -f cscope.out<CR> 
+        \ :cs add ./cscope.out .<CR><CR><CR> :cs reset<CR>
+		
 imap <F4> <ESC>:cs add ./cscope.out .<CR><CR><CR> :cs reset<CR>
 " 将:cs find c等Cscope查找命令映射为<C-_>c等快捷键（按法是先按Ctrl+Shift+-, 然后很快再按下c）
-nmap <C-_>s :cs find s <C-R>=expand("<cword>")<CR><CR> :copen<CR><CR>
-nmap <C-_>g :cs find g <C-R>=expand("<cword>")<CR><CR>
-nmap <C-_>d :cs find d <C-R>=expand("<cword>")<CR><CR> :copen<CR><CR>
-nmap <C-_>c :cs find c <C-R>=expand("<cword>")<CR><CR> :copen<CR><CR>
-nmap <C-_>t :cs find t <C-R>=expand("<cword>")<CR><CR> :copen<CR><CR>
-nmap <C-_>e :cs find e <C-R>=expand("<cword>")<CR><CR> :copen<CR><CR>
-nmap <C-_>f :cs find f <C-R>=expand("<cfile>")<CR><CR>
-nmap <C-_>i :cs find i <C-R>=expand("<cfile>")<CR><CR> :copen<CR><CR>
+nmap <C-s> :cs find s <C-R>=expand("<cword>")<CR><CR> :copen<CR><CR>
+nmap <C-g> :cs find g <C-R>=expand("<cword>")<CR><CR>
+nmap <C-d> :cs find d <C-R>=expand("<cword>")<CR><CR> :copen<CR><CR>
+nmap <C-c> :cs find c <C-R>=expand("<cword>")<CR><CR> :copen<CR><CR>
+nmap <C-t> :cs find t <C-R>=expand("<cword>")<CR><CR> :copen<CR><CR>
+nmap <C-e> :cs find e <C-R>=expand("<cword>")<CR><CR> :copen<CR><CR>
+nmap <C-f> :cs find f <C-R>=expand("<cfile>")<CR><CR>
+nmap <C-i> :cs find i <C-R>=expand("<cfile>")<CR><CR> :copen<CR><CR>
 
 " 设置 tagbar 子窗口的位置出现在主编辑区的左边 
 let tagbar_left=1 
@@ -210,7 +219,7 @@ let g:tagbar_type_cpp = {
 \ }
 
 " 使用 NERDTree 插件查看工程文件。设置快捷键，速记：file list
-nmap <Leader>fl :NERDTreeToggle<CR>
+map <F8> :NERDTreeToggle<CR>
 " 设置NERDTree子窗口宽度
 let NERDTreeWinSize=16
 " 设置NERDTree子窗口位置
