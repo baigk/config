@@ -1,5 +1,5 @@
 #!/bin/bash
-apt-get -y install ipmitool
+apt-get -y install openipmi ipmitool
 modprobe ipmi_msghandler
 modprobe ipmi_devintf
 modprobe ipmi_si

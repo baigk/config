@@ -71,7 +71,7 @@ set hlsearch
 
 let g:SuperTabRetainCompletionType=2
 let g:SuperTabDefaultCompletionType=""
-let g:pydiction_location='~/.vim/plugin/complete-dict'  let g
+let g:pydiction_location='~/.vim/plugin/complete-dict'
 let g:pydiction_menu_height = 3
 
 set foldmethod=indent
