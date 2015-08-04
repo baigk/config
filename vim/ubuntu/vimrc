@@ -219,7 +219,7 @@ let g:tagbar_type_cpp = {
 \ }
 
 " 使用 NERDTree 插件查看工程文件。设置快捷键，速记：file list
-map <F8> :NERDTreeToggle<CR>
+map <F6> :NERDTreeToggle<CR>
 " 设置NERDTree子窗口宽度
 let NERDTreeWinSize=16
 " 设置NERDTree子窗口位置
