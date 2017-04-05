@@ -9,19 +9,25 @@ import six
 LOG = logging.getLogger(__name__)
 
 class JSONRequestDeserializer(object):
+    def is_json_content_type(self, request):
+        content_type = request.content_type
+        print content_type
+        if not content_type or content_type.startswith('text/plain'):
+            content_type = 'application/json'
+        if (content_type in ('JSON', 'application/json') and request.body.startswith(b'{')):
+            return True
+        return False
+
     def has_body(self, request):
+        print request.content_length
         if (int(request.content_length or 0) > 0 and
-                is_json_content_type(request)):
+                self.is_json_content_type(request)):
             return True
 
         return False
 
     def from_json(self, datastring):
         try:
-            if len(datastring) > cfg.CONF.max_json_body_size:
-                msg = 'JSON body size (%(len)s bytes) exceeds maximum allowed size (%(limit)s bytes).'
-                         % {'len': len(datastring), 'limit': cfg.CONF.max_json_body_size}
-                raise exception.RequestLimitExceeded(message=msg)
             return jsonutils.loads(datastring)
         except ValueError as ex:
             raise webob.exc.HTTPBadRequest(six.text_type(ex))

@@ -10,6 +10,6 @@ def parse_args(argv, proj='default', ver='1.0'):
 def setup_logging():
 	try:
 		level = CONF.LOG.level
-		logging.getLogger(__name__).setLevel(eval(logging. + level))
+		logging.getLogger(__name__).setLevel(eval('logging.' + level))
 	except:
 		pass

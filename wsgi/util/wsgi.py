@@ -8,6 +8,8 @@ import eventlet.wsgi
 import logging
 from paste import deploy
 from oslo_config import cfg
+from oslo_utils import encodeutils
+import oslo_i18n as i18n
 from util import Exception as exception
 import webob.dec
 import webob.exc
@@ -21,21 +23,21 @@ class server(object):
         
         self.name   = name
         self.application = application
-	self.host = host
-	self.port = port
+        self.host = host
+        self.port = port
         self.max_url_len = max_url_len
 
     def start(self):
         try:
-	     sock  = eventlet.listen((self.host, self.port), backlog=5, family=socket.AF_INET)
+            sock  = eventlet.listen((self.host, self.port), backlog=5, family=socket.AF_INET)
        
-             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-             sock.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE, 1)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE, 1)
            
-             self.pool = eventlet.GreenPool(size=100)
-	     self.pool.spawn_n(self.run)
-             self.sock = sock
-             LOG.info("Start %s server", self.name)
+            self.pool = eventlet.GreenPool(size=100)
+            self.pool.spawn_n(self.run)
+            self.sock = sock
+            LOG.info("Start %s server", self.name)
 
         except:
             LOG.exception("start fail %s\n", (self.host, self.port))
@@ -56,12 +58,12 @@ class server(object):
 
         except:
             LOG.exception("run failed\n");
-		
+        
 
 class Router(object):
     def __init__(self, mapper):
         self.mapper = mapper
-        self._route = routes.middleware.RoutesMiddleware(self._dispatch, self.mapper)
+        self._route = routes.middleware.RoutesMiddleware(self._dispatch, self.mapper,  singleton=False)
 
     @webob.dec.wsgify
     def __call__(self, req):
@@ -115,8 +117,8 @@ class Request(webob.Request):
         return self.accept_language.best_match(all_languages)
 
 class Resource(object):
-	def __init__(self, controller, deserializer = None, serializer = None):
-		self.controller = controller
+    def __init__(self, controller, deserializer = None, serializer = None):
+        self.controller = controller
         self.deserializer = deserializer
         self.serializer = serializer
 
@@ -125,42 +127,44 @@ class Resource(object):
         err_msg = encodeutils.exception_to_unicode(exc)
         exc.message = i18n.translate(err_msg, locale)
 
-	    if isinstance(exc, webob.exc.HTTPError):
-	        exc.explanation = i18n.translate(exc.explanation, locale)
-	        exc.detail = i18n.translate(getattr(exc, 'detail', ''), locale)
-
-	    return exc
+        if isinstance(exc, webob.exc.HTTPError):
+            exc.explanation = i18n.translate(exc.explanation, locale)
+            exc.detail = i18n.translate(getattr(exc, 'detail', ''), locale)
+        return exc
  
     @webob.dec.wsgify(RequestClass=Request)
     def __call__(self, request):
-		action_args = self.get_action_args(request.environ)
-		action = action_args.pop('action', None)
+        action_args = self.get_action_args(request.environ)
+        action = action_args.pop('action', None)
 
-		try:
-        	LOG.debug('Calling %(controller)s : %(action)s', {'controller' : self.controller, 'action' : action})
-			action_result = self.dispatch(self.controller, action, request, **kwargs)
+        try:
+            LOG.debug('Calling %(env)s', {'env' : request.environ})
+            
+            deserialized_request = self.dispatch(self.deserializer, action, request)
+            action_args.update(deserialized_request)
+            action_result = self.dispatch(self.controller, action, request, **action_args)
 
         except TypeError as err:
             msg = 'The server could not comply with the request since it is either malformed or otherwise incorrect.'
-			err = webbob.exc.HTTPBadRequest(msg)
+            err = webob.exc.HTTPBadRequest(msg)
             http_exc = self.translate_exception(err, request.best_match_language())
-			raise exceptin.HTTPExceptionDisguise(http_exc)
+            raise exception.HTTPExceptionDisguise(http_exc)
         except webob.exc.HTTPException as err:
-        	if not isinstance(err, webob.exc.HTTPError):
-				raise
+            if not isinstance(err, webob.exc.HTTPError):
+                raise
 
             if isinstance(err, webob.exc.HTTPServerError):
-				LOG.error("Returning %(code)s to user: %(explanation)s", {'code': err.code, 'explanation': err.explanation})
+                LOG.error("Returning %(code)s to user: %(explanation)s", {'code': err.code, 'explanation': err.explanation})
             http_exc = self.translate_exception(err, request.best_match_language())
             raise exception.HTTPExceptionDisguise(http_exc)
         except Exception as err:
-            log_exception(err, sys.exc_info())
+            LOG.exception(sys.exc_info())
             raise self.translate_exception(err, request.best_match_language())
 
         try:
             serializer = self.serializer
             if serializer is None:
-                if content_type == "JSON":
+                if content_type in ["JSON", "text/json", "text/plain"]:
                     serializer = serializers.JSONResponseSerializer()
                 else:
                     serializer = serializers.XMLResponseSerializer()
@@ -179,31 +183,36 @@ class Resource(object):
 
             return action_result 
         
-    def dispath(self, obj, action, *args, **kwargs):
-		try:
-			method = getattr(obj, action)
+    def dispatch(self, obj, action, *args, **kwargs):
+        try:
+            method = getattr(obj, action)
         except AttributeError:
             method = getattr(obj, 'default')
-
-		return method(*args, **kwargs)
+	
+        try:
+            print args, kwargs
+            return obj.method(*args, **kwargs)
+        except TypeError as exc:
+            LOG.exception(exc)
+            return webob.exc.HTTPBadRequest()
     
-	def get_action_args(self, env):
-		try:
-			args = env['wsgiorg.routeing_args'][1].copy()
-		except Exception:
-			return {}
+    def get_action_args(self, env):
+        try:
+            args = env['wsgiorg.routing_args'][1].copy()
+        except Exception:
+            return {}
 
-		try:
-			del args['controller']
-		except KeyError:
-			pass
+        try:
+            del args['controller']
+        except KeyError:
+            pass
 
-		try:
-			del args['format']
-		except KeyError:
-			pass
+        try:
+            del args['format']
+        except KeyError:
+            pass
 
-		return args     	
+        return args         
 
 class Loader(object):
     def __init__(self, config_path=None):

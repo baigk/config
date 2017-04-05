@@ -8,7 +8,7 @@ if __name__ == "__main__":
     #s.wait()
 
     #main.main()
-    main.test()
+    main.main()
 
 
      

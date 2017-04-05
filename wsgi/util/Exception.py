@@ -1,4 +1,4 @@
-import inspect
+import inspect, sys
 
 class ExceptionBase(Exception):
    
@@ -17,3 +17,8 @@ class ConfigNotFound(ExceptionBase):
 
 class PasteAppNotFound(ExceptionBase):
     pass
+
+class HTTPExceptionDisguise(Exception):
+    def __init__(self, exception):
+        self.exc = exception
+        self.tb = sys.exc_info()[2]
