@@ -7,7 +7,7 @@ import logging
 
 CONF = cfg.CONF
 
-test_group = cfg.OptGroup('test_group')
+log_group = cfg.OptGroup('LOG')
 
 services_opts = [
     cfg.StrOpt('paste_ini', default=None, help='paste_ini'),
@@ -15,38 +15,35 @@ services_opts = [
     cfg.IntOpt('slicem_listen_port', default=8888, help='slicem_listen_port'),
 ]
 
-test_opts = [
-    cfg.StrOpt('test', default='test', help='test'),
+log_group = [
+    cfg.StrOpt('level', default='INFO', help='level'),
 ]
 
-cfg.CONF.register_group(test_group)
+cfg.CONF.register_group(log_group)
 
 logging.basicConfig(filename='slicem.log', level=logging.INFO)
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 def list_opts():
     yield None, services_opts
-    yield test_group.name, test_opts
+    yield log_group.name, log_group
 
 for name, opts in list_opts():
     cfg.CONF.register_opts(opts, group=name)
 
 def main():
-    config.parse_args(sys.argv, "slicem")
+
+	try:
+	    config.parse_args(sys.argv, "slicem")
+	    setup_logging()
+	    
+	    s = WSGIService('slicem', None, 50000)
+	    s.start()
+	    s.wait()
+
+	except Exception: 
+        LOG.exception("Failed to start slicem"))
 
 
-def hello(env, resp):
-    print env
-    resp('200 OK', [('Content-Type', 'text/plain')])
-    return 'hello world\n'
 
-class test_load():
-    def load_app(self, name):
-	return hello
-
-def test():
-    config.parse_args(sys.argv, "slicem")
-    s = WSGIService('slicem', None, 50000)
-    s.start()
-    s.wait()

@@ -115,10 +115,21 @@ class Request(webob.Request):
         return self.accept_language.best_match(all_languages)
 
 class Resource(object):
-	def __init__(self, controller, deserializer, serializer = None):
+	def __init__(self, controller, deserializer = None, serializer = None):
 		self.controller = controller
         self.deserializer = deserializer
         self.serializer = serializer
+
+    def translate_exception(self, exc, locale):
+
+        err_msg = encodeutils.exception_to_unicode(exc)
+        exc.message = i18n.translate(err_msg, locale)
+
+	    if isinstance(exc, webob.exc.HTTPError):
+	        exc.explanation = i18n.translate(exc.explanation, locale)
+	        exc.detail = i18n.translate(getattr(exc, 'detail', ''), locale)
+
+	    return exc
  
     @webob.dec.wsgify(RequestClass=Request)
     def __call__(self, request):
@@ -132,7 +143,7 @@ class Resource(object):
         except TypeError as err:
             msg = 'The server could not comply with the request since it is either malformed or otherwise incorrect.'
 			err = webbob.exc.HTTPBadRequest(msg)
-            http_exc = translate_exception(err, request.best_match_language())
+            http_exc = self.translate_exception(err, request.best_match_language())
 			raise exceptin.HTTPExceptionDisguise(http_exc)
         except webob.exc.HTTPException as err:
         	if not isinstance(err, webob.exc.HTTPError):
@@ -140,11 +151,11 @@ class Resource(object):
 
             if isinstance(err, webob.exc.HTTPServerError):
 				LOG.error("Returning %(code)s to user: %(explanation)s", {'code': err.code, 'explanation': err.explanation})
-            http_exc = translate_exception(err, request.best_match_language())
+            http_exc = self.translate_exception(err, request.best_match_language())
             raise exception.HTTPExceptionDisguise(http_exc)
         except Exception as err:
             log_exception(err, sys.exc_info())
-            raise translate_exception(err, request.best_match_language())
+            raise self.translate_exception(err, request.best_match_language())
 
         try:
             serializer = self.serializer

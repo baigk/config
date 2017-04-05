@@ -1,16 +1,17 @@
 from util.wsgi import APIRouter
-import control
+import example.TestControl1
+import example.TestControl2
 
 class APIRoute(APIRouter):
-#    def __call__(self, env, req):
-#        req('200 OK', [('Conten-Type', 'text/plain')])
-#        return 'hello world'
 
     def _setup_routes(self):
-        self.resources['test'] = control.control.create_resource()
+        self.resources['TescControl1'] = TestControl1.control.create_resource()
 
-        self.mapper.connect(None, "/", controller=self.resources['test'], action="show") 
+        self.mapper.connect("/test", controller=self.resources['TescControl1'], action="show", conditon={}) 
+
+        self.resources['TescControl2'] = TestControl2.control.create_resource()
+
+        self.mapper.resource("test", "tests", controller=self.resources['TescControl2'], 
+                             path_prefix='', 
+                             collection = {'show': 'GET', 'version':'get'})
     
- #   @classmethod
- #   def factory(cls, global_config, **local_config):
- #       return cls()    
