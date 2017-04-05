@@ -90,8 +90,109 @@ class APIRouter(Router):
     def _setup_routes(self):
         pass
 
+class Request(webob.Request):
+
+    def best_match_content_type(self):
+        supported = ('application/json',)
+        bm = self.accept.best_match(supported)
+        return bm or 'application/json'
+
+    def get_content_type(self, allowed_content_types):
+        if "Content-Type" not in self.headers:
+            raise exception.InvalidContentType(content_type=None)
+
+        content_type = self.content_type
+
+        if content_type not in allowed_content_types:
+            raise exception.InvalidContentType(content_type=content_type)
+        else:
+            return content_type
+
+    def best_match_language(self):
+        if not self.accept_language:
+            return None
+        all_languages = i18n.get_available_languages('sdme')
+        return self.accept_language.best_match(all_languages)
+
 class Resource(object):
-	pass   
+	def __init__(self, controller, deserializer, serializer = None):
+		self.controller = controller
+        self.deserializer = deserializer
+        self.serializer = serializer
+ 
+    @webob.dec.wsgify(RequestClass=Request)
+    def __call__(self, request):
+		action_args = self.get_action_args(request.environ)
+		action = action_args.pop('action', None)
+
+		try:
+        	LOG.debug('Calling %(controller)s : %(action)s', {'controller' : self.controller, 'action' : action})
+			action_result = self.dispatch(self.controller, action, request, **kwargs)
+
+        except TypeError as err:
+            msg = 'The server could not comply with the request since it is either malformed or otherwise incorrect.'
+			err = webbob.exc.HTTPBadRequest(msg)
+            http_exc = translate_exception(err, request.best_match_language())
+			raise exceptin.HTTPExceptionDisguise(http_exc)
+        except webob.exc.HTTPException as err:
+        	if not isinstance(err, webob.exc.HTTPError):
+				raise
+
+            if isinstance(err, webob.exc.HTTPServerError):
+				LOG.error("Returning %(code)s to user: %(explanation)s", {'code': err.code, 'explanation': err.explanation})
+            http_exc = translate_exception(err, request.best_match_language())
+            raise exception.HTTPExceptionDisguise(http_exc)
+        except Exception as err:
+            log_exception(err, sys.exc_info())
+            raise translate_exception(err, request.best_match_language())
+
+        try:
+            serializer = self.serializer
+            if serializer is None:
+                if content_type == "JSON":
+                    serializer = serializers.JSONResponseSerializer()
+                else:
+                    serializer = serializers.XMLResponseSerializer()
+
+            response = webob.Response(request=request)
+            self.dispatch(serializer, action, response, action_result)
+            return response
+
+        except Exception:
+            if content_type == "JSON":
+                try:
+                    err_body = action_result.get_unserialized_body()
+                    serializer.default(action_result, err_body)
+                except Exception:
+                    LOG.warning("Unable to serialize exception response")
+
+            return action_result 
+        
+    def dispath(self, obj, action, *args, **kwargs):
+		try:
+			method = getattr(obj, action)
+        except AttributeError:
+            method = getattr(obj, 'default')
+
+		return method(*args, **kwargs)
+    
+	def get_action_args(self, env):
+		try:
+			args = env['wsgiorg.routeing_args'][1].copy()
+		except Exception:
+			return {}
+
+		try:
+			del args['controller']
+		except KeyError:
+			pass
+
+		try:
+			del args['format']
+		except KeyError:
+			pass
+
+		return args     	
 
 class Loader(object):
     def __init__(self, config_path=None):
