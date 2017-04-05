@@ -1,4 +1,3 @@
-
 import sys
 import os.path
 import inspect
@@ -91,6 +90,9 @@ class APIRouter(Router):
     def _setup_routes(self):
         pass
 
+class Resource(object):
+	pass   
+
 class Loader(object):
     def __init__(self, config_path=None):
         self.config_path = None
@@ -104,7 +106,7 @@ class Loader(object):
 
     def load_app(self, name):
         try:
-            LOG.error("Loading app %(name)s from %(path)s",
+            LOG.info("Loading app %(name)s from %(path)s",
                       {'name':name, 'path':self.config_path})
 
             return deploy.loadapp("config:%s" % self.config_path, name=name)

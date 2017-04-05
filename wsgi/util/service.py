@@ -6,7 +6,6 @@ CONF = cfg.CONF
 
 class WSGIService(service.Service):
     def __init__(self, name, loader=None, max_url_len=None):
-        print getattr(CONF, "paste_ini", None)
 	self.name = name
         self.max_url_len = max_url_len
 	self.loader = loader or wsgi.Loader(getattr(CONF, "paste_ini", None))

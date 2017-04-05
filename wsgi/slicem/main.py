@@ -1,7 +1,7 @@
 
 import sys
 from oslo_config import cfg
-import config
+from util import config
 from util.service import WSGIService
 import logging
 
@@ -21,7 +21,7 @@ test_opts = [
 
 cfg.CONF.register_group(test_group)
 
-logging.basicConfig(filename='slicem.log')
+logging.basicConfig(filename='slicem.log', level=logging.INFO)
 
 log = logging.getLogger(__name__)
 
