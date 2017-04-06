@@ -1,8 +1,8 @@
 
 import sys
 from oslo_config import cfg
-from util import config
-from util.service import WSGIService
+from wsgi.service import WSGIService
+from wsgi.config import *
 import logging
 
 CONF = cfg.CONF
@@ -35,8 +35,8 @@ for name, opts in list_opts():
 def main():
 	
     try:
-        config.parse_args(sys.argv, "slicem")
-        config.setup_logging()
+        parse_args(sys.argv, "slicem")
+        setup_logging()
 	    
         s = WSGIService('slicem', None, 50000)
         s.start()

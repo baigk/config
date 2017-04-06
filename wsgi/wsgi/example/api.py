@@ -1,7 +1,7 @@
-from util.wsgi import APIRouter
-from util.serializers import *
-from example.TestController1 import *
-from example.TestController2 import *
+from wsgi.wsgi import APIRouter
+from wsgi.serializers import *
+from wsgi.example.TestController1 import *
+from wsgi.example.TestController2 import *
 
 class APIRoute(APIRouter):
 

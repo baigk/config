@@ -10,7 +10,7 @@ from paste import deploy
 from oslo_config import cfg
 from oslo_utils import encodeutils
 import oslo_i18n as i18n
-from util import Exception as exception
+import Exception as exception
 import webob.dec
 import webob.exc
 import routes
@@ -140,6 +140,7 @@ class Resource(object):
         try:
             LOG.debug('Calling %(env)s', {'env' : request.environ})
             if self.deserializer:      
+                print '//}]]]]]]]]]]]]]]]]]]', request
                 deserialized_request = self.dispatch(self.deserializer, action, request)
                 action_args.update(deserialized_request)
 

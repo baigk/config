@@ -1,4 +1,4 @@
-from util.Controller import Controller
+from wsgi.Controller import Controller
 
 class TestController1(Controller):
     

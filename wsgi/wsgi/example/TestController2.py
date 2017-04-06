@@ -1,4 +1,4 @@
-from util.Controller import *
+from wsgi.Controller import *
 
 class TestController2(Controller):
     def show(self, req, **kwargs):
