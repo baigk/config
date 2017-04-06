@@ -137,7 +137,6 @@ class Resource(object):
         action_args = self.get_action_args(request.environ)
         action = action_args.pop('action', None)
         content_type = request.params.get("ContentType")
-
         try:
             LOG.debug('Calling %(env)s', {'env' : request.environ})
             if self.deserializer:      
@@ -166,7 +165,7 @@ class Resource(object):
         try:
             serializer = self.serializer
             if serializer is None:
-                if content_type in ["JSON", "text/json", "text/plain"]:
+                if content_type in ["JSON", "application/json", "text/plain"]:
                     serializer = serializers.JSONResponseSerializer()
                 else:
                     serializer = serializers.XMLResponseSerializer()
@@ -192,7 +191,6 @@ class Resource(object):
             method = getattr(obj, 'default')
 	
         try:
-            print "+++++++++++;;;;", args, kwargs
             return method(*args, **kwargs)
         except TypeError as exc:
             LOG.exception(exc)

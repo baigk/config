@@ -1,9 +1,13 @@
 from util.Controller import *
 
 class TestController2(Controller):
-    def show(self, req):
-        print "ssssssssssssssss", req
-        return 'TestController2::show hello world'
+    def show(self, req, **kwargs):
+        resp  = kwargs.copy()
+        resp.update({'TestController2' : 'show hello world'})
+        resp.update({'env' : req.environ})
+        resp.update({'body': req.body})
+
+        return resp
 
     def version(self, res):
         return 'TestController2::version 1.0'
