@@ -13,6 +13,5 @@ class APIRoute(APIRouter):
         self.resources['TescControl2'] = TestController2.create_resource(JSONRequestDeserializer(), JSONResponseSerializer())
 
         self.mapper.resource("test", "tests", controller=self.resources['TescControl2'], 
-                             path_prefix='', 
                              collection = {'show': 'GET', 'version':'get'})
     

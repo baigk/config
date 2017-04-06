@@ -2,10 +2,10 @@ from util.Controller import Controller
 
 class TestController1(Controller):
     
-    def show(self, req, resp):
-        resp('200 OK', [('Context-Type', 'text/plain')])
+    def show(self, req):
+       #('200 OK', [('Context-Type', 'text/plain')])
      
-        raise Exception
+        #raise Exception
        
         return 'TestController1::show->TestControl1'
 
