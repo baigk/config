@@ -136,12 +136,14 @@ class Resource(object):
     def __call__(self, request):
         action_args = self.get_action_args(request.environ)
         action = action_args.pop('action', None)
+        content_type = request.params.get("ContentType")
 
         try:
             LOG.debug('Calling %(env)s', {'env' : request.environ})
-            
-            deserialized_request = self.dispatch(self.deserializer, action, request)
-            action_args.update(deserialized_request)
+            if self.deserializer:      
+                deserialized_request = self.dispatch(self.deserializer, action, request)
+                action_args.update(deserialized_request)
+
             action_result = self.dispatch(self.controller, action, request, **action_args)
 
         except TypeError as err:
@@ -183,15 +185,15 @@ class Resource(object):
 
             return action_result 
         
-    def dispatch(self, obj, action, *args, **kwargs):
+    def dispatch(self, obj, action, request, **kwargs):
         try:
             method = getattr(obj, action)
         except AttributeError:
             method = getattr(obj, 'default')
 	
         try:
-            print args, kwargs
-            return obj.method(*args, **kwargs)
+            print request, kwargs
+            return method(request, **kwargs)
         except TypeError as exc:
             LOG.exception(exc)
             return webob.exc.HTTPBadRequest()

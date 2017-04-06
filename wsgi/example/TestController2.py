@@ -1,6 +1,6 @@
-from util.Controller import SeriallizerController
+from util.Controller import *
 
-class TestController2(SeriallizerController):
+class TestController2(Controller):
     def show(self, env, resp):
         print ";;;;;;;;;;;;;;;;;", self, env , resp
         #resp('200 OK', [('Context-Type', 'text/plain')])

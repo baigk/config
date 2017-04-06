@@ -2,7 +2,7 @@ from util.Controller import Controller
 
 class TestController1(Controller):
     
-    def show(self, env, resp):
+    def show(self, req, resp):
         resp('200 OK', [('Context-Type', 'text/plain')])
      
         raise Exception
