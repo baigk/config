@@ -5,4 +5,5 @@ class Controller(object):
     def create_resource(cls, deserializer = None, serializer = None):
        return wsgi.Resource(cls(), deserializer, serializer)
 
-                    
+    def health(self, req):
+       return ""                    

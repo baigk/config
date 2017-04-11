@@ -12,7 +12,6 @@ LOG = logging.getLogger(__name__)
 class JSONRequestDeserializer(object):
     def is_json_content_type(self, request):
         content_type = request.content_type
-        print content_type, '00000000000', request.body
         if not content_type or content_type.startswith('text/plain'):
             content_type = 'application/json'
         if (content_type in ('JSON', 'application/json') and request.body.startswith(b'{')):
@@ -30,7 +29,6 @@ class JSONRequestDeserializer(object):
         try:
             return jsonutils.loads(datastring)
         except ValueError as ex:
-            print 'dddddddddddddd'
             raise webob.exc.HTTPBadRequest(six.text_type(ex))
 
     def default(self, request):

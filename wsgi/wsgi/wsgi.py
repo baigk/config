@@ -15,6 +15,7 @@ import webob.dec
 import webob.exc
 import routes
 import routes.middleware
+import Controller
 
 LOG = logging.getLogger(__name__)
 class server(object):
@@ -37,7 +38,7 @@ class server(object):
             self.pool = eventlet.GreenPool(size=100)
             self.pool.spawn_n(self.run)
             self.sock = sock
-            LOG.info("Start %s server", self.name)
+            LOG.info("Start %s server at %s:%s", self.name, self.host, self.port)
 
         except:
             LOG.exception("start fail %s\n", (self.host, self.port))
@@ -59,6 +60,8 @@ class server(object):
         except:
             LOG.exception("run failed\n");
         
+    def stop(self):
+        LOG.info("Stopping WSGI server.")
 
 class Router(object):
     def __init__(self, mapper):
@@ -88,6 +91,9 @@ class APIRouter(Router):
         super(APIRouter, self).__init__(routes.Mapper())
         self.resources = {}
         self._setup_routes()
+       
+        self.resources['HEALTH'] = Controller.Controller.create_resource()
+        self.mapper.connect(None, '/health', controller=self.resources['HEALTH'], action="health")
 
     def _setup_routes(self):
         pass
@@ -140,7 +146,6 @@ class Resource(object):
         try:
             LOG.debug('Calling %(env)s', {'env' : request.environ})
             if self.deserializer:      
-                print '//}]]]]]]]]]]]]]]]]]]', request
                 deserialized_request = self.dispatch(self.deserializer, action, request)
                 action_args.update(deserialized_request)
 

@@ -1,6 +1,7 @@
 from oslo_service import service
 from oslo_config import cfg
 import wsgi
+from config import *
 
 CONF = cfg.CONF
 
@@ -11,9 +12,9 @@ class WSGIService(service.Service):
         self.loader = loader or wsgi.Loader(getattr(CONF, "paste_ini", None))
         self.app = self.loader.load_app(name)
 
-        self.host = getattr(CONF, "%s_listen" % name, '0.0.0.0')
-        self.port = getattr(CONF, "%s_listen_port" % name, 0)
-
+        self.host = get_config_value("listen", name)
+        self.port = get_config_value("listen_port", name)
+        
         self.server = wsgi.server(name, self.app, host=self.host, port=self.port, max_url_len=max_url_len)
 
     def reset(self):
@@ -27,3 +28,6 @@ class WSGIService(service.Service):
 
     def wait(self):
         self.server.wait()
+
+def process_launcher():
+    return service.ProcessLauncher(CONF)
