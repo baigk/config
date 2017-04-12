@@ -70,7 +70,7 @@ class server(service.ServiceBase):
                 self.pool.waitall()
                 self.server.wait()
         except greenlet.GreenletExit:
-            LOG.info(_LI("WSGI server has stopped."))
+            LOG.info("WSGI server has stopped.")
     
     def stop(self):
         LOG.info("Stopping WSGI server.")
