@@ -6,32 +6,40 @@ import wsgi.Exception as exception
 
 CONF = cfg.CONF
 
+log = logging.getLogger(__name__)
 
-def main():
+def setup_opts():
     parse_args(sys.argv)
-    setup(get_config_value('project', 'sdme'))
-    log = logging.getLogger(__name__)
-    
-    started = 0
 
-    launcher = process_launcher()
-    
-    for app in CONF.wsgi_apps:
+    CONF.register_opt(cfg.ListOpt('proj', default=[], help='proj'))
+
+    for proj in CONF.proj:
+        opt = "%s_apps" % proj
+        CONF.register_opt(cfg.ListOpt(opt, default=[], help=opt))
+
+def wsgi_setup(proj, launcher):
+    apps = getattr(CONF, "%s_apps" % proj, [])
+
+    setup(proj, apps)
+    print proj, apps
+    for app in apps:
         try:
-            server = WSGIService(app, None, 50000)
+            service = WSGIService(app, None, 50000)
                
-            launcher.launch_service(server, 1)
-            started += 1
+            launcher.launch_service(service, 1)
         except exception.PasteAppNotFound as ex:
             log.error("%s wsgi_apps %s includes bad values. Fix to remove this warning." % (app, ex))
+            raise
         except Exception as ex:
             log.error("launch app %s fail %s." % (app, ex))
+            raise
 
-    if started == 0:
-        log.error('No APIs were started. Check the enabled_apis config option.')
-        sys.exit(1)
-    
+def wsgi_init():
+    launcher = process_launcher()
+    for proj in CONF.proj:
+        wsgi_setup(proj, launcher)
     launcher.wait()
 
 if __name__=="__main__":
-    main()
+    setup_opts()
+    wsgi_init()  

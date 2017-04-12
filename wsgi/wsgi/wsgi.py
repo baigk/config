@@ -42,7 +42,6 @@ class server(service.ServiceBase):
             sock = self.sock.dup()    
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE, 1)
-            print "12345"           
             LOG.info("Start %s server at %s:%s", self.name, self.host, self.port)
 
             wsgi_kwargs = {
