@@ -2,6 +2,7 @@ import sys
 import os.path
 import inspect
 import eventlet
+import greenlet
 import traceback
 import socket
 import eventlet.wsgi
@@ -9,6 +10,7 @@ import logging
 from paste import deploy
 from oslo_config import cfg
 from oslo_utils import encodeutils
+from oslo_service import service
 import oslo_i18n as i18n
 import Exception as exception
 import webob.dec
@@ -18,50 +20,65 @@ import routes.middleware
 import Controller
 
 LOG = logging.getLogger(__name__)
-class server(object):
+class server(service.ServiceBase):
     def __init__(self, name, application, host = '0.0.0.0', port = 0, max_url_len = None):
         #event.wsgi.MAX_HEADER_LINE = self.conf.max_header_line
-        
+        self.pool_size = 100 
         self.name   = name
         self.application = application
         self.host = host
         self.port = port
         self.max_url_len = max_url_len
+        self.pool = eventlet.GreenPool(size=self.pool_size)
+        self.server = None
+        try:
+             self.sock  = eventlet.listen((self.host, self.port), backlog=5, family=socket.AF_INET)
+        except Exception:
+             LOG.error(" %s listen fail %s:%s" % (name, self.host, self.port))
+             raise
 
     def start(self):
         try:
-            sock  = eventlet.listen((self.host, self.port), backlog=5, family=socket.AF_INET)
-       
+            sock = self.sock.dup()    
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE, 1)
-           
-            self.pool = eventlet.GreenPool(size=100)
-            self.pool.spawn_n(self.run)
-            self.sock = sock
+            print "12345"           
             LOG.info("Start %s server at %s:%s", self.name, self.host, self.port)
+
+            wsgi_kwargs = {
+                       'func': eventlet.wsgi.server,
+                       'sock': sock,
+                       'site': self.application,
+                       'custom_pool': self.pool,
+                       'log': LOG,
+                       'debug': True,
+                       }
+            
+            if self.max_url_len:
+                wsgi_kwargs['url_length_limit'] = self.max_url_len
+
+            self.server = eventlet.spawn(**wsgi_kwargs)
 
         except:
             LOG.exception("start fail %s\n", (self.host, self.port))
     
+    def reset(self):
+        self.pool.resize(self.pool_size)
+ 
     def wait(self):
         try:
-            self.pool.waitall()
-        except KeyboardInterrupt:
-            pass
-        except:
-            LOG.exception("wait\n")
-
-    def run(self):
-        try:
-            eventlet.wsgi.server(self.sock, self.application, custom_pool=self.pool,
-                             url_length_limit=self.max_url_len,
-                             log=LOG, debug=True)
-
-        except:
-            LOG.exception("run failed\n");
-        
+            if self.server is not None:
+                self.pool.waitall()
+                self.server.wait()
+        except greenlet.GreenletExit:
+            LOG.info(_LI("WSGI server has stopped."))
+    
     def stop(self):
         LOG.info("Stopping WSGI server.")
+
+        if self.server is not None:
+            self.pool.resize(0)
+            self.server.kill()
 
 class Router(object):
     def __init__(self, mapper):
