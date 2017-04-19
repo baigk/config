@@ -1,0 +1,9 @@
+consul = "127.0.0.1:8500" 
+  
+template {  
+  
+source = "./config.ctmpl"  
+destination = "./ret.py"  
+command = "python ./ret.py"  
+  
+}  

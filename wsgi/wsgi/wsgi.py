@@ -18,12 +18,13 @@ import webob.exc
 import routes
 import routes.middleware
 import Controller
+from serializers import *
 
 LOG = logging.getLogger(__name__)
 class server(service.ServiceBase):
     def __init__(self, name, application, host = '0.0.0.0', port = 0, max_url_len = None):
         #event.wsgi.MAX_HEADER_LINE = self.conf.max_header_line
-        self.pool_size = 100 
+        self.pool_size = 100
         self.name   = name
         self.application = application
         self.host = host
@@ -39,7 +40,7 @@ class server(service.ServiceBase):
 
     def start(self):
         try:
-            sock = self.sock.dup()    
+            sock = self.sock.dup()
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE, 1)
             LOG.info("Start %s server at %s:%s", self.name, self.host, self.port)
@@ -52,7 +53,7 @@ class server(service.ServiceBase):
                        'log': LOG,
                        'debug': True,
                        }
-            
+
             if self.max_url_len:
                 wsgi_kwargs['url_length_limit'] = self.max_url_len
 
@@ -60,10 +61,10 @@ class server(service.ServiceBase):
 
         except:
             LOG.exception("start fail %s\n", (self.host, self.port))
-    
+
     def reset(self):
         self.pool.resize(self.pool_size)
- 
+
     def wait(self):
         try:
             if self.server is not None:
@@ -71,7 +72,7 @@ class server(service.ServiceBase):
                 self.server.wait()
         except greenlet.GreenletExit:
             LOG.info("WSGI server has stopped.")
-    
+
     def stop(self):
         LOG.info("Stopping WSGI server.")
 
@@ -107,7 +108,7 @@ class APIRouter(Router):
         super(APIRouter, self).__init__(routes.Mapper())
         self.resources = {}
         self._setup_routes()
-       
+
         self.resources['HEALTH'] = Controller.Controller.create_resource()
         self.mapper.connect(None, '/health', controller=self.resources['HEALTH'], action="health")
 
@@ -153,15 +154,15 @@ class Resource(object):
             exc.explanation = i18n.translate(exc.explanation, locale)
             exc.detail = i18n.translate(getattr(exc, 'detail', ''), locale)
         return exc
- 
+
     @webob.dec.wsgify(RequestClass=Request)
     def __call__(self, request):
         action_args = self.get_action_args(request.environ)
         action = action_args.pop('action', None)
-        content_type = request.params.get("ContentType")
+        content_type = request.content_type
         try:
             LOG.debug('Calling %(env)s', {'env' : request.environ})
-            if self.deserializer:      
+            if self.deserializer:
                 deserialized_request = self.dispatch(self.deserializer, action, request)
                 action_args.update(deserialized_request)
 
@@ -188,36 +189,36 @@ class Resource(object):
             serializer = self.serializer
             if serializer is None:
                 if content_type in ["JSON", "application/json", "text/plain"]:
-                    serializer = serializers.JSONResponseSerializer()
+                    serializer = JSONResponseSerializer()
                 else:
-                    serializer = serializers.XMLResponseSerializer()
+                    serializer = XMLResponseSerializer()
 
             response = webob.Response(request=request)
             self.dispatch(serializer, action, response, action_result)
             return response
 
         except Exception:
-            if content_type == "JSON":
+            if content_type in ["JSON", "application/json", "text/plain"]:
                 try:
                     err_body = action_result.get_unserialized_body()
                     serializer.default(action_result, err_body)
                 except Exception:
                     LOG.warning("Unable to serialize exception response")
 
-            return action_result 
-        
+            return action_result
+
     def dispatch(self, obj, action, *args, **kwargs):
         try:
             method = getattr(obj, action)
         except AttributeError:
             method = getattr(obj, 'default')
-	
+
         try:
             return method(*args, **kwargs)
         except TypeError as exc:
             LOG.exception(exc)
             return webob.exc.HTTPBadRequest()
-    
+
     def get_action_args(self, env):
         try:
             args = env['wsgiorg.routing_args'][1].copy()
@@ -234,7 +235,7 @@ class Resource(object):
         except KeyError:
             pass
 
-        return args         
+        return args
 
 class Loader(object):
     def __init__(self, config_path=None):
@@ -242,8 +243,8 @@ class Loader(object):
         if not os.path.isabs(config_path):
             self.config_path = cfg.CONF.find_file(config_path)
         elif os.path.exists(config_path):
-            self.config_path = config_path   
-        
+            self.config_path = config_path
+
         if not self.config_path:
             raise exception.ConfigNotFound(path=config_path)
 
