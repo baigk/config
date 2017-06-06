@@ -104,11 +104,14 @@ public:
 class KafkaConsumer
 {
 	public:
+		~KafkaConsumer();
 		void conf_dump();
 		KafkaConsumer(std::string broker ="localhost", MqConfig * globalConfig = nullptr, MqConfig * topicConfig = nullptr);
 
 		unsigned int runFlag() {return __run;}
 		void setRunFlag(unsigned int flag) {__run = flag;}
+
+		RdKafka::KafkaConsumer *getConsumer(){return __consumer;}
 	private:
 		RdKafka::Conf *__globalConf;
 		RdKafka::Conf *__topicConf;
@@ -119,7 +122,7 @@ class KafkaConsumer
 		pthread_t __id;
 };
 
-KafkaConsumer::KafkaConsumer(std::string broker = "localhost", MqConfig * global = nullptr, MqConfig * topic = nullptr) {
+KafkaConsumer::KafkaConsumer(std::string broker, MqConfig * global, MqConfig * topic) {
 	std::string errstr;
 	
 
@@ -129,26 +132,26 @@ KafkaConsumer::KafkaConsumer(std::string broker = "localhost", MqConfig * global
     //ExampleRebalanceCb ex_rebalance_cb;
 	//conf->set("rebalance_cb", &ex_rebalance_cb, errstr);
 	
-	auto configItem = [](RdKafka::Conf *kafkaConfig, std::string & key, std::string & val) ->unsigned int{
+	auto configItem = [&](RdKafka::Conf *kafkaConfig, std::string & key, std::string & val) ->unsigned int{
 		auto ret = kafkaConfig->set(key, val, errstr);
-		if (ret != RdKafka::Conf::CONF_OKRdKafka::Conf::CONF_OK) {
-			cout << "config fail " << ret << " " << cfgItem.first << " " << cfgItem.second << " " << errstr << endl;
+		if (ret != RdKafka::Conf::CONF_OK) {
+			std::cout << "config fail " << ret << " " << key << " " << val << " " << errstr << std::endl;
 			return 1;
 		}
 
 		return 0;
-	}
+	};
 
 
-    auto config = [](MqConfig * mqConfig, RdKafka::Conf *kafkaConfig)->unsigned int {
+    auto config = [=](MqConfig * mqConfig, RdKafka::Conf *kafkaConfig)->unsigned int {
 		unsigned int ret = 0;
 		for (auto & cfgItem : mqConfig->getConfig()) {
 			ret |= configItem(kafkaConfig, cfgItem.first, cfgItem.second);
 		}
 		return ret;
-	}
+	};
 
-	global.update("metadata.broker.list", broker);
+	global->update("metadata.broker.list", broker);
 
 	config(global, __globalConf);
 	config(topic, __topicConf);
@@ -163,20 +166,20 @@ KafkaConsumer::KafkaConsumer(std::string broker = "localhost", MqConfig * global
 
     auto ret = __globalConf->set("consume_cb", __consumeCb, errstr);
 	if (ret != RdKafka::Conf::CONF_OK) {
-		cout << "config fail " << ret << " " << "consume_cb"  << " " << errstr << endl;
+		std::cout << "config fail " << ret << " " << "consume_cb"  << " " << errstr << std::endl;
 	}
 
 	__eventCb = new ExampleEventCb;
 
-	ret = __globalConf->set("event_cb", &ex_event_cb, errstr);
+	ret = __globalConf->set("event_cb", __eventCb, errstr);
 	if (ret != RdKafka::Conf::CONF_OK) {
-		cout << "config fail " << ret << " " << "consume_cb"  << " " << errstr << endl;
+		std::cout << "config fail " << ret << " " << "consume_cb"  << " " << errstr << std::endl;
 	}
 
 
-	ret = __globalConf->set("default_topic_conf", tconf, errstr);
+	ret = __globalConf->set("default_topic_conf", __topicConf, errstr);
 	if (ret != RdKafka::Conf::CONF_OK) {
-		cout << "config fail " << ret << " " << "consume_cb"  << " " << errstr << endl;
+		std::cout << "config fail " << ret << " " << "consume_cb"  << " " << errstr << std::endl;
 	}
 
 	__consumer = RdKafka::KafkaConsumer::create(__globalConf, errstr);
@@ -186,32 +189,32 @@ KafkaConsumer::KafkaConsumer(std::string broker = "localhost", MqConfig * global
 	}
 
 	std::vector<std::string> topics = {"test", "test1"};
-	ret  = __consumer->subscribe(topics);
-	if (ret != RdKafka::Conf::CONF_OK) {
+	RdKafka::ErrorCode err  = __consumer->subscribe(topics);
+	if (err) {
 		std::cout << "Failed to subscribe to " << topics.size() << " topics: "
-              << RdKafka::err2str(ret) << std::endl;
+              << RdKafka::err2str(err) << std::endl;
 		return;
 	}
 
-	auto thread = []->void *(void *para) {
+	auto thread = [](void *para)->void *{
 		KafkaConsumer * c = (KafkaConsumer *)para;
 
 		while (c->runFlag()) {
-			RdKafka::Message *msg = consumer->consume(1000);
+			RdKafka::Message *msg = c->getConsumer()->consume(1000);
 			if (msg != nullptr) {
 				msg_consume(msg, NULL);
 				delete msg;
 			}
 		}
-	}
+	};
 
-	ret = pthread_create(&__id, NULL, (void *)thread, this);
-	if (ret != 0) {
+	auto ret1 = pthread_create(&__id, NULL, thread, this);
+	if (ret1 != 0) {
 		std::cout << "Create pthread error!n" << std::endl;
 	}
 }
 
-~KafkaConsumer::KafkaConsumer() {
+KafkaConsumer::~KafkaConsumer() {
 	__consumer->close();
 
 	setRunFlag(0);
@@ -219,7 +222,7 @@ KafkaConsumer::KafkaConsumer(std::string broker = "localhost", MqConfig * global
 	pthread_join(__id, NULL);
 
 	delete __consumer;
-	delete __consumerCb;
+	delete __consumeCb;
 	delete __eventCb;
 
 	RdKafka::wait_destroyed(5000);
@@ -228,7 +231,7 @@ KafkaConsumer::KafkaConsumer(std::string broker = "localhost", MqConfig * global
 
 void KafkaConsumer::conf_dump() {
 	auto dump = [](std::list<std::string> *conf) {
-		for (std::list<std::string>::iterator it = dump->begin(); it != dump->end(); ) {
+		for (std::list<std::string>::iterator it = conf->begin(); it != conf->end(); ) {
 			std::cout << "    " <<  *it << " = ";
 			it++;
 			std::cout << *it << std::endl;
@@ -238,45 +241,16 @@ void KafkaConsumer::conf_dump() {
 
     };
 
-	if (global_conf != nullptr) {
+	if (__globalConf != nullptr) {
 		std::cout << "global_config:" << std::endl;
-		dump(global_conf)
+		dump(__globalConf->dump());
 	}
 
-	if (topic_conf != nullptr) {
+	if (__topicConf != nullptr) {
 		std::cout << "topic_config:" << std::endl;
-		dump(topic_conf)
+		dump(__topicConf->dump());
 	}
 }
-
-
-void msg_consume(RdKafka::Message* message, void* opaque) {
-    switch (message->err()) {
-		case RdKafka::ERR__TIMED_OUT:
-			break;
-
-		case RdKafka::ERR_NO_ERROR:
-			std::cerr << "Read msg at offset " << message->offset() << std::endl;
-			std::cout << "Key: " << *message->key() << std::endl;
-			printf("%.*s\n",
-               static_cast<int>(message->len()),
-               static_cast<const char *>(message->payload()));
-			break;
-
-		case RdKafka::ERR__PARTITION_EOF:
-			std::cerr << "EOF reached for all partition(s)" << std::endl;
-			break;
-
-		case RdKafka::ERR__UNKNOWN_TOPIC:
-		case RdKafka::ERR__UNKNOWN_PARTITION:
-			std::cerr << "Consume failed: " << message->errstr() << std::endl;
-			break;
-
-		default:
-			std::cerr << "Consume failed: " << message->errstr() << std::endl;
-	}
-}
-
 
 int main (int argc, char **argv) {
 	KafkaConsumer consumer;
