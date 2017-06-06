@@ -1,0 +1,13 @@
+
+class KafkaTopics
+{
+public:
+	unsigned int createTopic(std::vector<std::string> &topic, std::vertor<MqConfigItem> * config> = nullptr);
+    unsigned int createTopic(const std::string & topic, std::vertor<MqConfigItem> * config> = nullptr);
+    unsigned int updateTopicConf(const std::string & topic, std::vertor<MqConfigItem> * config> = nullptr);
+    unsigned int deleteTopic(std::vector<std::string> &topic);
+    unsigned int deleteTopic(const std::string & topic);
+
+private:
+
+};
