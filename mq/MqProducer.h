@@ -8,5 +8,5 @@ public:
 	unsigned int CreateTopic(const std::string & topic, std::vertor<MqConfigItem> * config> = nullptr) {return 0;}
 	unsigned int UpdateTopic(const std::string & topic, std::vertor<MqConfigItem> * config> = nullptr) {return 0;}
 	unsigned int DeleteTopic(const std::string & topic);
-	unsigned int produce(const std::string & topic, const std::string & message, void *param = nullptr) {return 0;}
+	unsigned int publicMessage(const std::string & topic, const std::string & message, void *param = nullptr) {return 0;}
 };

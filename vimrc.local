@@ -129,6 +129,16 @@ map <F6> :make clean<CR><CR><CR>
 " imap <F8> <ESC>:cp<CR>
 " imap <F9> <ESC>:cn<CR>
 
+let g:clang_complete_copen=1
+let g:clang_periodic_quickfix=1
+let g:clang_snippets=1
+let g:clang_close_preview=1
+let g:clang_use_library=1
+let g:clang_user_options='-stdlib=libc++ -std=c++11 -IIncludePath'
+autocmd FileType c ClangFormatAutoEnable
+let g:neocomplcache_enable_at_startup = 1
+map <C-K> :pyf <path-to-this-file>/clang-format.py<cr>
+imap <C-K> <c-o>:pyf <path-to-this-file>/clang-format.py<cr>
 
 " apt-get install vim vim-scripts vim-doc
 " apt-get install ctags
@@ -138,3 +148,6 @@ map <F6> :make clean<CR><CR><CR>
 " vim-addons install winmanager
 " vim-addons install minibufexplorer
 " vim-addons install project
+"
+" sudo apt-get install clang 
+"

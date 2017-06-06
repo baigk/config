@@ -27,9 +27,9 @@ public:
 	KafkaProducer(std::shared_ptr<MqConfig> config);
 	virtual ~KafkaProducer();
  
-	static std::shared_ptr<KakfaProducer> create(std::shared_ptr<MqConfig> config = nullptr);
+	static std::shared_ptr<MqProducer> create(std::shared_ptr<MqConfig> config = nullptr);
 
-	unsigned int produce(const std::string &topic, const std::string & message, void *param = nullptr);
+	unsigned int publishMessage(const std::string &topic, const std::string & message, void *param = nullptr);
 
 	unsigned int createTopic(std::vector<std::string> &topic, std::vertor<MqConfigItem> * config> = nullptr);
 	unsigned int createTopic(const std::string & topic, std::vertor<MqConfigItem> * config> = nullptr);

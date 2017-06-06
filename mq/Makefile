@@ -1,12 +1,17 @@
 
 CXXFLAGS +=  -std=c++11 -g -ggdb -fpermissive
 
-INCLUDES = -I../lib
+INCLUDES = -I../lib \
+		   -I./ \
+		   -I./kafka
 
 LIBS_PATH = -L../lib
 LIBS = ../lib/librdkafka++.a ../lib/librdkafka.a -lpthread -lrt -ldl
 
-objs = producer.o main.o consumer.o
+VPATH = ./
+VPATH += ./kafka
+
+objs = MqFactory.o test.o KafakInit.o KafkaProducer.o KafkaTopics.o
 
 .PHONY: all
 all: $(objs)

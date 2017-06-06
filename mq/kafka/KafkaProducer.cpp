@@ -4,6 +4,7 @@
 unsigned int partitioner_cb(const RdKafka::Topic *topic, const std::string *key,
 		unsigned int partition_cnt, void *msg_opaque)
 {
+	return 0;
 }
 
 KafkaProducer::KafkaProducer(std::shared_ptr<MqConfig> config) {
