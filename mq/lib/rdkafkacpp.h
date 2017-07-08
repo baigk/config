@@ -105,14 +105,14 @@ int          version ();
  * @brief Returns the librdkafka version as string.
  */
 RD_EXPORT
-std::string  version_str();
+string  version_str();
 
 /**
  * @brief Returns a CSV list of the supported debug contexts
  *        for use with Conf::Set("debug", ..).
  */
 RD_EXPORT
-std::string get_debug_contexts();
+string get_debug_contexts();
 
 /**
  * @brief Wait for all rd_kafka_t objects to be destroyed.
@@ -366,7 +366,7 @@ enum ErrorCode {
  * @brief Returns a human readable representation of a kafka error.
  */
 RD_EXPORT
-std::string  err2str(RdKafka::ErrorCode err);
+string  err2str(RdKafka::ErrorCode err);
 
 
 /**@} */
@@ -451,7 +451,7 @@ class RD_EXPORT PartitionerCb {
    *     if a partition has an active leader broker.
    */
   virtual int32_t partitioner_cb (const Topic *topic,
-                                  const std::string *key,
+                                  const string *key,
                                   int32_t partition_cnt,
                                   void *msg_opaque) = 0;
 
@@ -466,7 +466,7 @@ class PartitionerKeyPointerCb {
  public:
   /**
    * @brief Variant partitioner callback that gets \p key as pointer and length
-   *        instead of as a const std::string *.
+   *        instead of as a const string *.
    *
    * @remark \p key may be NULL or have \p key_len 0.
    *
@@ -557,7 +557,7 @@ class RD_EXPORT Event {
    * @returns Log facility string.
    * @remark Applies to LOG event type.
    */
-  virtual std::string fac () const = 0;
+  virtual string fac () const = 0;
 
   /**
    * @returns Log message string.
@@ -567,7 +567,7 @@ class RD_EXPORT Event {
    *
    * @remark Applies to LOG event type.
    */
-  virtual std::string str () const = 0;
+  virtual string str () const = 0;
 
   /**
    * @returns Throttle time in milliseconds.
@@ -579,7 +579,7 @@ class RD_EXPORT Event {
    * @returns Throttling broker's name.
    * @remark Applies to THROTTLE event type.
    */
-  virtual std::string broker_name () const = 0;
+  virtual string broker_name () const = 0;
 
   /**
    * @returns Throttling broker's id.
@@ -640,7 +640,7 @@ public:
    *     public:
    *      void rebalance_cb (RdKafka::KafkaConsumer *consumer,
    *     	      RdKafka::ErrorCode err,
-   *                  std::vector<RdKafka::TopicPartition*> &partitions) {
+   *                  vector<RdKafka::TopicPartition*> &partitions) {
    *         if (err == RdKafka::ERR__ASSIGN_PARTITIONS) {
    *           // application may load offets from arbitrary external
    *           // storage here and update \p partitions
@@ -654,8 +654,8 @@ public:
    *           consumer->unassign();
    *
    *         } else {
-   *           std::cerr << "Rebalancing error: <<
-   *                        RdKafka::err2str(err) << std::endl;
+   *           cerr << "Rebalancing error: <<
+   *                        RdKafka::err2str(err) << endl;
    *           consumer->unassign();
    *         }
    *     }
@@ -664,7 +664,7 @@ public:
    */
  virtual void rebalance_cb (RdKafka::KafkaConsumer *consumer,
 			    RdKafka::ErrorCode err,
-                            std::vector<TopicPartition*>&partitions) = 0;
+                            vector<TopicPartition*>&partitions) = 0;
 
  virtual ~RebalanceCb() { }
 };
@@ -691,7 +691,7 @@ public:
    *   - \c err:       Commit error
    */
   virtual void offset_commit_cb(RdKafka::ErrorCode err,
-                                std::vector<TopicPartition*>&offsets) = 0;
+                                vector<TopicPartition*>&offsets) = 0;
 
   virtual ~OffsetCommitCb() { }
 };
@@ -740,7 +740,7 @@ class RD_EXPORT OpenCb {
    *
    * @remark Not currently available on native Win32
    */
-  virtual int open_cb (const std::string &path, int flags, int mode) = 0;
+  virtual int open_cb (const string &path, int flags, int mode) = 0;
 
   virtual ~OpenCb() { }
 };
@@ -806,19 +806,19 @@ class RD_EXPORT Conf {
    * @returns CONF_OK on success, else writes a human readable error
    *          description to \p errstr on error.
    */
-  virtual Conf::ConfResult set (const std::string &name,
-                                const std::string &value,
-                                std::string &errstr) = 0;
+  virtual Conf::ConfResult set (const string &name,
+                                const string &value,
+                                string &errstr) = 0;
 
   /** @brief Use with \p name = \c \"dr_cb\" */
-  virtual Conf::ConfResult set (const std::string &name,
+  virtual Conf::ConfResult set (const string &name,
                                 DeliveryReportCb *dr_cb,
-                                std::string &errstr) = 0;
+                                string &errstr) = 0;
 
   /** @brief Use with \p name = \c \"event_cb\" */
-  virtual Conf::ConfResult set (const std::string &name,
+  virtual Conf::ConfResult set (const string &name,
                                 EventCb *event_cb,
-                                std::string &errstr) = 0;
+                                string &errstr) = 0;
 
   /** @brief Use with \p name = \c \"default_topic_conf\"
    *
@@ -827,37 +827,37 @@ class RD_EXPORT Conf {
    *
    * @sa RdKafka::KafkaConsumer::subscribe()
    */
-  virtual Conf::ConfResult set (const std::string &name,
+  virtual Conf::ConfResult set (const string &name,
                                 const Conf *topic_conf,
-                                std::string &errstr) = 0;
+                                string &errstr) = 0;
 
   /** @brief Use with \p name = \c \"partitioner_cb\" */
-  virtual Conf::ConfResult set (const std::string &name,
+  virtual Conf::ConfResult set (const string &name,
                                 PartitionerCb *partitioner_cb,
-                                std::string &errstr) = 0;
+                                string &errstr) = 0;
 
   /** @brief Use with \p name = \c \"partitioner_key_pointer_cb\" */
-  virtual Conf::ConfResult set (const std::string &name,
+  virtual Conf::ConfResult set (const string &name,
                                 PartitionerKeyPointerCb *partitioner_kp_cb,
-                                std::string &errstr) = 0;
+                                string &errstr) = 0;
 
   /** @brief Use with \p name = \c \"socket_cb\" */
-  virtual Conf::ConfResult set (const std::string &name, SocketCb *socket_cb,
-                                std::string &errstr) = 0;
+  virtual Conf::ConfResult set (const string &name, SocketCb *socket_cb,
+                                string &errstr) = 0;
 
   /** @brief Use with \p name = \c \"open_cb\" */
-  virtual Conf::ConfResult set (const std::string &name, OpenCb *open_cb,
-                                std::string &errstr) = 0;
+  virtual Conf::ConfResult set (const string &name, OpenCb *open_cb,
+                                string &errstr) = 0;
 
   /** @brief Use with \p name = \c \"rebalance_cb\" */
-  virtual Conf::ConfResult set (const std::string &name,
+  virtual Conf::ConfResult set (const string &name,
                                 RebalanceCb *rebalance_cb,
-                                std::string &errstr) = 0;
+                                string &errstr) = 0;
 
   /** @brief Use with \p name = \c \"offset_commit_cb\" */
-  virtual Conf::ConfResult set (const std::string &name,
+  virtual Conf::ConfResult set (const string &name,
                                 OffsetCommitCb *offset_commit_cb,
-                                std::string &errstr) = 0;
+                                string &errstr) = 0;
 
   /** @brief Query single configuration value
    *
@@ -870,8 +870,8 @@ class RD_EXPORT Conf {
    *
    *  @returns CONF_OK if the property was set previously set and
    *           returns the value in \p value. */
-  virtual Conf::ConfResult get(const std::string &name,
-	  std::string &value) const = 0;
+  virtual Conf::ConfResult get(const string &name,
+	  string &value) const = 0;
 
   /** @brief Query single configuration value
    *  @returns CONF_OK if the property was set previously set and
@@ -915,11 +915,11 @@ class RD_EXPORT Conf {
 
   /** @brief Dump configuration names and values to list containing
    *         name,value tuples */
-  virtual std::list<std::string> *dump () = 0;
+  virtual list<string> *dump () = 0;
 
   /** @brief Use with \p name = \c \"consume_cb\" */
-  virtual Conf::ConfResult set (const std::string &name, ConsumeCb *consume_cb,
-				std::string &errstr) = 0;
+  virtual Conf::ConfResult set (const string &name, ConsumeCb *consume_cb,
+				string &errstr) = 0;
 };
 
 /**@}*/
@@ -939,7 +939,7 @@ class RD_EXPORT Handle {
   virtual ~Handle() { }
 
   /** @returns the name of the handle */
-  virtual const std::string name () const = 0;
+  virtual const string name () const = 0;
 
   /**
    * @brief Returns the client's broker-assigned group member id
@@ -949,7 +949,7 @@ class RD_EXPORT Handle {
    * @returns Last assigned member id, or empty string if not currently
    *          a group member.
    */
-  virtual const std::string memberid () const = 0;
+  virtual const string memberid () const = 0;
 
 
   /**
@@ -1012,7 +1012,7 @@ class RD_EXPORT Handle {
    *
    * @sa resume()
    */
-  virtual ErrorCode pause (std::vector<TopicPartition*> &partitions) = 0;
+  virtual ErrorCode pause (vector<TopicPartition*> &partitions) = 0;
 
 
   /**
@@ -1024,7 +1024,7 @@ class RD_EXPORT Handle {
    *
    * @sa pause()
    */
-  virtual ErrorCode resume (std::vector<TopicPartition*> &partitions) = 0;
+  virtual ErrorCode resume (vector<TopicPartition*> &partitions) = 0;
 
 
   /**
@@ -1035,7 +1035,7 @@ class RD_EXPORT Handle {
    *
    * @returns RdKafka::ERR_NO_ERROR on success or an error code on failure.
    */
-  virtual ErrorCode query_watermark_offsets (const std::string &topic,
+  virtual ErrorCode query_watermark_offsets (const string &topic,
 					     int32_t partition,
 					     int64_t *low, int64_t *high,
 					     int timeout_ms) = 0;
@@ -1057,7 +1057,7 @@ class RD_EXPORT Handle {
    *
    * @remark Shall only be used with an active consumer instance.
    */
-  virtual ErrorCode get_watermark_offsets (const std::string &topic,
+  virtual ErrorCode get_watermark_offsets (const string &topic,
 					   int32_t partition,
 					   int64_t *low, int64_t *high) = 0;
 
@@ -1081,7 +1081,7 @@ class RD_EXPORT Handle {
    * @returns an error code for general errors, else RdKafka::ERR_NO_ERROR
    *          in which case per-partition errors might be set.
    */
-  virtual ErrorCode offsetsForTimes (std::vector<TopicPartition*> &offsets,
+  virtual ErrorCode offsetsForTimes (vector<TopicPartition*> &offsets,
                                      int timeout_ms) = 0;
 
 
@@ -1140,7 +1140,7 @@ class RD_EXPORT Handle {
    * @returns Last cached ClusterId, or empty string if no ClusterId could be
    *          retrieved in the allotted timespan.
    */
-  virtual const std::string clusterid (int timeout_ms) = 0;
+  virtual const string clusterid (int timeout_ms) = 0;
 };
 
 
@@ -1159,7 +1159,7 @@ class RD_EXPORT Handle {
  * This is a generic type to hold a single partition and various
  * information about it.
  *
- * Is typically used with std::vector<RdKafka::TopicPartition*> to provide
+ * Is typically used with vector<RdKafka::TopicPartition*> to provide
  * a list of partitions for different operations.
  */
 class RD_EXPORT TopicPartition {
@@ -1170,8 +1170,8 @@ public:
    *
    * Use \c delete to deconstruct.
    */
-  static TopicPartition *create (const std::string &topic, int partition);
-  static TopicPartition *create (const std::string &topic, int partition,
+  static TopicPartition *create (const string &topic, int partition);
+  static TopicPartition *create (const string &topic, int partition,
                                  int64_t offset);
 
   virtual ~TopicPartition() = 0;
@@ -1180,10 +1180,10 @@ public:
    * @brief Destroy/delete the TopicPartitions in \p partitions
    *        and clear the vector.
    */
-  static void destroy (std::vector<TopicPartition*> &partitions);
+  static void destroy (vector<TopicPartition*> &partitions);
 
   /** @returns topic name */
-  virtual const std::string &topic () const = 0;
+  virtual const string &topic () const = 0;
 
   /** @returns partition id */
   virtual int partition () const = 0;
@@ -1230,14 +1230,14 @@ class RD_EXPORT Topic {
    *
    * @returns the new topic handle or NULL on error (see \p errstr).
    */
-  static Topic *create (Handle *base, const std::string &topic_str,
-                        Conf *conf, std::string &errstr);
+  static Topic *create (Handle *base, const string &topic_str,
+                        Conf *conf, string &errstr);
 
   virtual ~Topic () = 0;
 
 
   /** @returns the topic name */
-  virtual const std::string name () const = 0;
+  virtual const string name () const = 0;
 
   /**
    * @returns true if \p partition is available for the topic (has leader).
@@ -1315,7 +1315,7 @@ class RD_EXPORT Message {
 
   /** @returns The error string if object represent an error event,
    *           else an empty string. */
-  virtual std::string         errstr() const = 0;
+  virtual string         errstr() const = 0;
 
   /** @returns The error code if object represents an error event, else 0. */
   virtual ErrorCode           err () const = 0;
@@ -1327,7 +1327,7 @@ class RD_EXPORT Message {
   virtual Topic              *topic () const = 0;
 
   /** @returns Topic name (if applicable, else empty string) */
-  virtual std::string         topic_name () const = 0;
+  virtual string         topic_name () const = 0;
 
   /** @returns Partition (if applicable) */
   virtual int32_t             partition () const = 0;
@@ -1339,7 +1339,7 @@ class RD_EXPORT Message {
   virtual size_t              len () const = 0;
 
   /** @returns Message key as string (if applicable) */
-  virtual const std::string  *key () const = 0;
+  virtual const string  *key () const = 0;
 
   /** @returns Message key as void pointer  (if applicable) */
   virtual const void         *key_pointer () const = 0 ;
@@ -1462,18 +1462,18 @@ public:
    * @sa CONFIGURATION.md for \c group.id, \c session.timeout.ms,
    *     \c partition.assignment.strategy, etc.
    */
-  static KafkaConsumer *create (Conf *conf, std::string &errstr);
+  static KafkaConsumer *create (Conf *conf, string &errstr);
 
   virtual ~KafkaConsumer () = 0;
 
 
   /** @brief Returns the current partition assignment as set by
    *         RdKafka::KafkaConsumer::assign() */
-  virtual ErrorCode assignment (std::vector<RdKafka::TopicPartition*> &partitions) = 0;
+  virtual ErrorCode assignment (vector<RdKafka::TopicPartition*> &partitions) = 0;
 
   /** @brief Returns the current subscription as set by
    *         RdKafka::KafkaConsumer::subscribe() */
-  virtual ErrorCode subscription (std::vector<std::string> &topics) = 0;
+  virtual ErrorCode subscription (vector<string> &topics) = 0;
 
   /**
    * @brief Update the subscription set to \p topics.
@@ -1499,7 +1499,7 @@ public:
    *
    * @returns an error if the provided list of topics is invalid.
    */
-  virtual ErrorCode subscribe (const std::vector<std::string> &topics) = 0;
+  virtual ErrorCode subscribe (const vector<string> &topics) = 0;
 
   /** @brief Unsubscribe from the current subscription set. */
   virtual ErrorCode unsubscribe () = 0;
@@ -1510,7 +1510,7 @@ public:
    * The assignment set is the set of partitions actually being consumed
    * by the KafkaConsumer.
    */
-  virtual ErrorCode assign (const std::vector<TopicPartition*> &partitions) = 0;
+  virtual ErrorCode assign (const vector<TopicPartition*> &partitions) = 0;
 
   /**
    * @brief Stop consumption and remove the current assignment.
@@ -1588,14 +1588,14 @@ public:
    *
    * @remark This is the synchronous variant.
    */
-  virtual ErrorCode commitSync (std::vector<TopicPartition*> &offsets) = 0;
+  virtual ErrorCode commitSync (vector<TopicPartition*> &offsets) = 0;
 
   /**
    * @brief Commit offset for the provided list of partitions.
    *
    * @remark This is the asynchronous variant.
    */
-  virtual ErrorCode commitAsync (const std::vector<TopicPartition*> &offsets) = 0;
+  virtual ErrorCode commitAsync (const vector<TopicPartition*> &offsets) = 0;
 
   /**
    * @brief Commit offsets for the current assignment.
@@ -1619,7 +1619,7 @@ public:
    *
    * @returns ERR_NO_ERROR or error code.
    */
-  virtual ErrorCode commitSync (std::vector<TopicPartition*> &offsets,
+  virtual ErrorCode commitSync (vector<TopicPartition*> &offsets,
                                 OffsetCommitCb *offset_commit_cb) = 0;
 
 
@@ -1633,7 +1633,7 @@ public:
    *          in with the stored offset, or a partition specific error.
    *          Else returns an error code.
    */
-  virtual ErrorCode committed (std::vector<TopicPartition*> &partitions,
+  virtual ErrorCode committed (vector<TopicPartition*> &partitions,
 			       int timeout_ms) = 0;
 
   /**
@@ -1644,7 +1644,7 @@ public:
    *          in with the stored offset, or a partition specific error.
    *          Else returns an error code.
    */
-  virtual ErrorCode position (std::vector<TopicPartition*> &partitions) = 0;
+  virtual ErrorCode position (vector<TopicPartition*> &partitions) = 0;
 
 
   /**
@@ -1703,7 +1703,7 @@ public:
    *
    * @returns RdKafka::ERR_NO_ERROR on success or an error code on error.
    */
-  virtual ErrorCode offsets_store (std::vector<TopicPartition*> &offsets) = 0;
+  virtual ErrorCode offsets_store (vector<TopicPartition*> &offsets) = 0;
 };
 
 
@@ -1733,7 +1733,7 @@ class RD_EXPORT Consumer : public virtual Handle {
    * @returns the new handle on success or NULL on error in which case
    * \p errstr is set to a human readable error message.
    */
-  static Consumer *create (Conf *conf, std::string &errstr);
+  static Consumer *create (Conf *conf, string &errstr);
 
   virtual ~Consumer () = 0;
 
@@ -1910,7 +1910,7 @@ class RD_EXPORT Producer : public virtual Handle {
    * @returns the new handle on success or NULL on error in which case
    *          \p errstr is set to a human readable error message.
    */
-  static Producer *create (Conf *conf, std::string &errstr);
+  static Producer *create (Conf *conf, string &errstr);
 
 
   virtual ~Producer () = 0;
@@ -2012,12 +2012,12 @@ class RD_EXPORT Producer : public virtual Handle {
   virtual ErrorCode produce (Topic *topic, int32_t partition,
                              int msgflags,
                              void *payload, size_t len,
-                             const std::string *key,
+                             const string *key,
                              void *msg_opaque) = 0;
 
   /**
    * @brief Variant produce() that passes the key as a pointer and length
-   *        instead of as a const std::string *.
+   *        instead of as a const string *.
    */
   virtual ErrorCode produce (Topic *topic, int32_t partition,
                              int msgflags,
@@ -2031,7 +2031,7 @@ class RD_EXPORT Producer : public virtual Handle {
    *        message timestamp (microseconds since beginning of epoch, UTC).
    *        Otherwise identical to produce() above.
    */
-  virtual ErrorCode produce (const std::string topic_name, int32_t partition,
+  virtual ErrorCode produce (const string topic_name, int32_t partition,
                              int msgflags,
                              void *payload, size_t len,
                              const void *key, size_t key_len,
@@ -2044,8 +2044,8 @@ class RD_EXPORT Producer : public virtual Handle {
    *        The vector data will be copied.
    */
   virtual ErrorCode produce (Topic *topic, int32_t partition,
-                             const std::vector<char> *payload,
-                             const std::vector<char> *key,
+                             const vector<char> *payload,
+                             const vector<char> *key,
                              void *msg_opaque) = 0;
 
 
@@ -2082,7 +2082,7 @@ class BrokerMetadata {
   virtual int32_t id() const = 0;
 
   /** @returns Broker hostname */
-  virtual const std::string host() const = 0;
+  virtual const string host() const = 0;
 
   /** @returns Broker listening port */
   virtual int port() const = 0;
@@ -2098,9 +2098,9 @@ class BrokerMetadata {
 class PartitionMetadata {
  public:
   /** @brief Replicas */
-  typedef std::vector<int32_t> ReplicasVector;
+  typedef vector<int32_t> ReplicasVector;
   /** @brief ISRs (In-Sync-Replicas) */
-  typedef std::vector<int32_t> ISRSVector;
+  typedef vector<int32_t> ISRSVector;
 
   /** @brief Replicas iterator */
   typedef ReplicasVector::const_iterator ReplicasIterator;
@@ -2118,12 +2118,12 @@ class PartitionMetadata {
   virtual int32_t leader() const = 0;
 
   /** @returns Replica brokers */
-  virtual const std::vector<int32_t> *replicas() const = 0;
+  virtual const vector<int32_t> *replicas() const = 0;
 
   /** @returns In-Sync-Replica brokers
    *  @warning The broker may return a cached/outdated list of ISRs.
    */
-  virtual const std::vector<int32_t> *isrs() const = 0;
+  virtual const vector<int32_t> *isrs() const = 0;
 
   virtual ~PartitionMetadata() = 0;
 };
@@ -2136,12 +2136,12 @@ class PartitionMetadata {
 class TopicMetadata {
  public:
   /** @brief Partitions */
-  typedef std::vector<const PartitionMetadata*> PartitionMetadataVector;
+  typedef vector<const PartitionMetadata*> PartitionMetadataVector;
   /** @brief Partitions iterator */
   typedef PartitionMetadataVector::const_iterator PartitionMetadataIterator;
 
   /** @returns Topic name */
-  virtual const std::string topic() const = 0;
+  virtual const string topic() const = 0;
 
   /** @returns Partition list */
   virtual const PartitionMetadataVector *partitions() const = 0;
@@ -2159,9 +2159,9 @@ class TopicMetadata {
 class Metadata {
  public:
   /** @brief Brokers */
-  typedef std::vector<const BrokerMetadata*> BrokerMetadataVector;
+  typedef vector<const BrokerMetadata*> BrokerMetadataVector;
   /** @brief Topics */
-  typedef std::vector<const TopicMetadata*>  TopicMetadataVector;
+  typedef vector<const TopicMetadata*>  TopicMetadataVector;
 
   /** @brief Brokers iterator */
   typedef BrokerMetadataVector::const_iterator BrokerMetadataIterator;
@@ -2179,7 +2179,7 @@ class Metadata {
   virtual int32_t orig_broker_id() const = 0;
 
   /** @brief Broker (name) originating this metadata */
-  virtual const std::string orig_broker_name() const = 0;
+  virtual const string orig_broker_name() const = 0;
 
   virtual ~Metadata() = 0;
 };

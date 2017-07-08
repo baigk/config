@@ -1,14 +1,11 @@
-#include <iostream>
-#include <string>
-#include <cstdlib>
-#include <cstdio>
-#include <csignal>
-#include <cstring>
+#pragma once
+
+#include "KafkaConfig.h"
 
 class HashPartitionerCb : public RdKafka::PartitionerCb
 {
 public:
-	unsigned int partitioner_cb(const RdKafka::Topic *topic, const std::string *key,
+	unsigned int partitioner_cb(const RdKafka::Topic *topic, const string *key,
 		unsigned int partition_cnt, void *msg_opaque);
 
 private:
@@ -21,23 +18,15 @@ private:
 	}
 };
 
-class KafkaProducer 
+class KafkaProducer : MqProducer
 {
 public:
-	KafkaProducer(std::shared_ptr<MqConfig> config);
+	KafkaProducer(const MqConfig & config = MqConfig());
 	virtual ~KafkaProducer();
- 
-	static std::shared_ptr<MqProducer> create(std::shared_ptr<MqConfig> config = nullptr);
 
-	unsigned int publishMessage(const std::string &topic, const std::string & message, void *param = nullptr);
-
-	unsigned int createTopic(std::vector<std::string> &topic, std::vertor<MqConfigItem> * config> = nullptr);
-	unsigned int createTopic(const std::string & topic, std::vertor<MqConfigItem> * config> = nullptr);
-	unsigned int updateTopicConf(const std::string & topic, std::vertor<MqConfigItem> * config> = nullptr);
-	unsigned int deleteTopic(std::vector<std::string> &topic);
-	unsigned int deleteTopic(const std::string & topic);
+	unsigned int publishMessage(const string &topic, const string & message, void *param = nullptr);
 
 private:
-	std::shared_ptr<RdKafka::Producer> __producer;
-	std::shared_ptr<KafkaProducerConfig> __conf;
+	shared_ptr<RdKafka::Producer> __producer;
+	shared_ptr<KafkaProducerConfig> __conf;
 };

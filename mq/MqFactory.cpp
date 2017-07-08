@@ -1,25 +1,33 @@
 
+#include <memory>
 #include "MqFactory.h"
 
-MqFactory::MqFacory(){}
+MqFactory::MqFactory(){}
 MqFactory::~MqFactory(){
 	__mqInfo.clear();
 }
 
-unsigned int MqFactory::registerMqInfo(const std::string & type, const std::shared_ptr<MqInfo>  mqInfo){
-	__mqInfo[type] = mqInfo
-
-std::shared_ptr<Mq>  MqFactory::createConsumer(std::string & type = "kafka", std::vertor<MqConfigItem> * config> = nullptr) {
-	auto it = __mqInfo.find(type);
-	if (it == __mqInfo.end()) return nullptr;
-
-	return it->second(config);
+MqFactory & MqFactory::getInstance() {
+    static MqFactory instance;
+    return instance;
 }
 
-std::shared_ptr<Mq>  MqFactory::createProducer(std::string & type = "kafka", std::vertor<MqConfigItem> * config> = nullptr) {
+unsigned int MqFactory::registerMqInfo(const string & type, const MqInfo  & mqInfo){
+	__mqInfo[type] = mqInfo;
+    return 0;
+}
+
+shared_ptr<MqConsumer>  MqFactory::createConsumer(const string & type = "kafka", const MqConfig & config) {
 	auto it = __mqInfo.find(type);
 	if (it == __mqInfo.end()) return nullptr;
 
-	return it->second(config);
+	return it->second.createConsumerFunc(config);
+}
+
+shared_ptr<MqProducer>  MqFactory::createProducer(const string & type = "kafka", const MqConfig & config) {
+	auto it = __mqInfo.find(type);
+	if (it == __mqInfo.end()) return nullptr;
+
+	return it->second.createProducerFunc(config);
 }
 

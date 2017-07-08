@@ -1,19 +1,22 @@
-#include "Singon.h"
+#pragma once
+
+#include "KafkaConfig.h"
 
 class KafkaTopics
 {
-	DECLARE_SINGON(KafkaTopics);
 public:
-    unsigned int KafkaTopics::createTopic(std::shared_ptr<RdKafka::Producer> producer, std::string &topic, std::shared_ptr<KafkaTopicConfig> conf = nullptr);
-    unsigned int KafkaTopics::createTopic(std::shared_ptr<RdKafka::Producer> producer, std::vector<std::string> &topic, std::vertor<MqConfigItem> * config = nullptr);
-    unsigned int KafkaTopics::createTopic(std::shared_ptr<RdKafka::Producer> producer, const std::string & topic, std::vertor<MqConfigItem> * config = nullptr);
-    unsigned int updateTopicConf(std::shared_ptr<RdKafka::Producer> producer, const std::string & topic, std::vertor<MqConfigItem> * config = nullptr);
-    unsigned int deleteTopic(std::shared_ptr<RdKafka::Producer> producer, std::vector<std::string> &topic);
-    unsigned int deleteTopic(std::shared_ptr<RdKafka::Producer> producer, const std::string & topic);
-    std::shared_ptr<RdKafka::Topic> KafkaTopic::getTopic(const std::string &topic)
+
+    static KafkaTopics & getInstance();
+    unsigned int createTopic(shared_ptr<RdKafka::Producer> producer, string &topic, const MqConfig & config = MqConfig());
+    unsigned int createTopic(shared_ptr<RdKafka::Producer> producer, vector<string> &topic, const MqConfig & config = MqConfig());
+    unsigned int createTopic(shared_ptr<RdKafka::Producer> producer, const string & topic, const MqConfig & config = MqConfig());
+    unsigned int updateTopicConf(shared_ptr<RdKafka::Producer> producer, const string & topic, const MqConfig & config = MqConfig());
+    unsigned int deleteTopic(shared_ptr<RdKafka::Producer> producer, vector<string> &topic);
+    unsigned int deleteTopic(shared_ptr<RdKafka::Producer> producer, const string & topic);
+    shared_ptr<RdKafka::Topic> getTopic(const string &topic);
 
 private:
-	std::map<std::string, std::shared_ptr<RdKafka::Topic> __topics;
+	unordered_map<string, shared_ptr<RdKafka::Topic>> __topics;
 };
 
 

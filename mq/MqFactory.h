@@ -1,8 +1,10 @@
-#include "Mq.h"
-#include "Sington.h"
+#pragma once
 
-using CreateConsumerFunc = (MqConsumer *)(*)(MqConfig *);
-using CreateProducerFunc = (MqProducer *)(*)(MqConfig *);
+#include <unordered_map>
+#include "Mq.h"
+
+typedef shared_ptr<MqConsumer> (* CreateConsumerFunc)(const MqConfig &);
+typedef shared_ptr<MqProducer> (* CreateProducerFunc)(const MqConfig &);
 
 typedef struct tagMqInfo {
 	CreateConsumerFunc createConsumerFunc;
@@ -11,17 +13,18 @@ typedef struct tagMqInfo {
 
 class MqFactory
 {
-	DECLARE_SINGTON(MqFactory);
+    MqFactory & getInstance();
+
 public:
 	MqFactory();
 	virtual ~MqFactory();
 
-	std::shared_ptr<MqConsumer> createConsumer(std::string & type, std::vertor<MqConfigItem> * config> = nullptr);
+	shared_ptr<MqConsumer> createConsumer(const string & type, const MqConfig & config = MqConfig());
 
-	std::shared_ptr<MqProducer> createProducer(std::string & type, std::vertor<MqConfigItem> * config> = nullptr);
+	shared_ptr<MqProducer> createProducer(const string & type, const MqConfig & config = MqConfig());
 
-	unsigned int registerMqInfo(const std::string & type, const MqInfo & mqInfo) ;
+	unsigned int registerMqInfo(const string & type, const MqInfo & mqInfo) ;
 
 private:
-	std::map<std::string, MqInfo> __mqInfo;
-}
+	unordered_map<string, MqInfo> __mqInfo;
+};
