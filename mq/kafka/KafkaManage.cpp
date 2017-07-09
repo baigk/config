@@ -1,8 +1,10 @@
 #include "MqFactory.h"
+#include "KafkaConsumer.h"
+#include "KafkaProducer.h"
 
 class KafkaFactory : public MqFactory {
 public:
-	KafkaFactory * getInstance();
+	static KafkaFactory * getInstance();
 	
 	virtual shared_ptr<MqConsumer> createConsumer(const MqConfig & config = MqConfig());
 	
@@ -17,14 +19,14 @@ KafkaFactory * KafkaFactory::getInstance() {
 	return &instance;
 }
 
-shared_ptr<MqConsumer>  MqFactoryBase::createConsumer(const MqConfig & config) {
-	shared_ptr<MqConsumer> consumer = make_shared<KafkaConsumer>(config);
+shared_ptr<MqConsumer> KafkaFactory::createConsumer(const MqConfig & config) {
+	shared_ptr<MqConsumer> consumer(new KafkaConsumer(config));
 
 	return consumer;
 }
 
-shared_ptr<MqProducer>  KafkaFactory::createProducer(const MqConfig & config) {
-	shared_ptr<MqProducer> producer = make_shared<KafkaProducer>(config);
+shared_ptr<MqProducer> KafkaFactory::createProducer(const MqConfig & config) {
+	shared_ptr<MqProducer> producer(new KafkaProducer(config));
 
 	return producer;
 }

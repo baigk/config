@@ -18,7 +18,7 @@ private:
 	}
 };
 
-class KafkaProducer : MqProducer
+class KafkaProducer : public  MqProducer
 {
 public:
 	KafkaProducer(const MqConfig & config = MqConfig());
@@ -29,4 +29,5 @@ public:
 	virtual shared_ptr<MqTopic> createTopicEx(const string & topic);
 private:
 	shared_ptr<RdKafka::Producer> __producer;
+    shared_ptr<KafkaGlobalConfig> __conf;
 };

@@ -63,7 +63,8 @@ void ConsumeCb::consume_cb (RdKafka::Message &msg, void *opaque) {
 	msg_consume(&msg, opaque);
 }
 
-KafkaConsumer::KafkaConsumer(shared_ptr<RdKafka::Conf> global, shared_ptr<RdKafka::Conf> toipc) {
+KafkaConsumer::KafkaConsumer() {}
+KafkaConsumer::KafkaConsumer(const MqConfig & config) {
 	string errstr;
 
     #if 0
@@ -77,21 +78,23 @@ KafkaConsumer::KafkaConsumer(shared_ptr<RdKafka::Conf> global, shared_ptr<RdKafk
 
 	__globalConf = make_shared<KafkaGlobalConfig>(config);
 	__topicConf = make_shared<KafkaTopicConfig>(config);
-  
+ 
+
+    auto gconf = __globalConf->getKafkaConfig().get();
 	__consumeCb  = new ConsumeCb;
 	__eventCb = new ExampleEventCb;
-	__consumer = RdKafka::KafkaConsumer::create(global, errstr);
+	__consumer = RdKafka::KafkaConsumer::create(gconf, errstr);
 	if (__consumer == nullptr) {
 		cerr << "Failed to create consumer: " << errstr << endl;
 		return;
 	}
     
-    auto ret = global->set("consume_cb", __consumeCb, errstr);
+    auto ret = gconf->set("consume_cb", __consumeCb, errstr);
 	if (ret != RdKafka::Conf::CONF_OK) {
 		cout << "config fail " << ret << " " << "consume_cb"  << " " << errstr << endl;
 	}
 
-	ret = global->set("event_cb", __eventCb, errstr);
+	ret = gconf->set("event_cb", __eventCb, errstr);
 	if (ret != RdKafka::Conf::CONF_OK) {
 		cout << "config fail " << ret << " " << "consume_cb"  << " " << errstr << endl;
 	}
@@ -132,14 +135,14 @@ KafkaConsumer::KafkaConsumer(shared_ptr<RdKafka::Conf> global, shared_ptr<RdKafk
 }
 
 unsigned int KafkaConsumer::subscribe(const string & topic) {
-     RdKafka::ErrorCode err  = __consumer->subscribe(topic);
-     if (err) {
-          cout << "Failed to subscribe to " << topics.size() << " topics: "
-               << RdKafka::err2str(err) << endl;
-          return 1;
-     }
-                                     }
-     return 0;
+    vector<string> t = { topic };
+
+    RdKafka::ErrorCode err  = __consumer->subscribe(t);
+    if (err) {
+        //cout << "Failed to subscribe to " << topic << RdKafka::err2str(err) << endl;
+        return 1;
+    }
+    return 0;
 }
 
 KafkaConsumer::~KafkaConsumer() {
@@ -157,6 +160,7 @@ KafkaConsumer::~KafkaConsumer() {
 }
 
 void KafkaConsumer::conf_dump() {
+#if 0
 	auto dump = [](list<string> *conf) {
 		for (list<string>::iterator it = conf->begin(); it != conf->end(); ) {
 			cout << "    " <<  *it << " = ";
@@ -177,10 +181,11 @@ void KafkaConsumer::conf_dump() {
 		cout << "topic_config:" << endl;
 		dump(__topicConf->dump());
 	}
+#endif
 }
 
 int main1 (int argc, char **argv) {
-	KafkaConsumer consumer;
+//	KafkaConsumer consumer;
 
 	while(1) {
 		sleep(100000);

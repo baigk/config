@@ -7,13 +7,8 @@ unsigned int partitioner_cb(const RdKafka::Topic *topic, const string *key,
 	return 0;
 }
 
-KafkaProducer(const MqConfig & config):MqConfig(config){};
-virtual ~KafkaProducer();
-
-
-KafkaProducer::KafkaProducer(vector<MqConfigItem> * config) {
-	__conf = make_shared<KafkaProducerConfig>(config) 
-
+KafkaProducer::KafkaProducer(const MqConfig & config):MqProducer(config){
+	__conf = make_shared<KafkaGlobalConfig>(config);
 	string errstr;
     __producer = shared_ptr<RdKafka::Producer>(RdKafka::Producer::create(__conf->getKafkaConfig().get(), errstr));
    	if (!__producer){
@@ -31,19 +26,20 @@ KafkaProducer::~KafkaProducer() {
 	RdKafka::wait_destroyed(1000);
 }
 
-virtual shared_ptr<MqTopic> KafkaProducer::createTopicEx(const string & topic) {
-	return make_shared<KafkaTopic>(__producer, topic, _config);
+shared_ptr<MqTopic> KafkaProducer::createTopicEx(const string & topic) {
+    shared_ptr<MqTopic> p(new KafkaTopic(__producer, topic, _config));
+	return p;
 }
 
 
 unsigned int KafkaProducer::publishMessage(shared_ptr<MqTopic> t, const string & message, void * param){
-	auto tpk = dynamic_pointer_cast<shared_ptr<KafkaTopic>>t;
+	auto tpk = dynamic_pointer_cast<shared_ptr<KafkaTopic>>(t);
 	if (tpk == nullptr){
 		return 1;
 	}
 
 	RdKafka::ErrorCode resp =
-		__producer->produce(tpk.tpk.get(), RD_KAFKA_PARTITION_UA,
+		__producer->produce(tpk->tpk.get(), RD_KAFKA_PARTITION_UA,
 		RdKafka::Producer::RK_MSG_COPY,
 		const_cast<char*>(message.c_str()), message.size(),
 		NULL, NULL);

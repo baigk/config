@@ -31,9 +31,9 @@ unsigned int MqConsumer::subscribe(const string &topic) {
 	return ret;
 }
 
-MqProducer(){}
+MqProducer::MqProducer(){}
 
-MqProducer(MqConfig & config): _config(config){
+MqProducer::MqProducer(const MqConfig & config): _config(config){
 	MqProducerManager::getInstance().addProducer(getptr());
 }
 
@@ -48,7 +48,7 @@ MqProducer & MqProducer::createTopic(const string & topic){
 		cout << "create topic fail" << endl;
 	}
 
-	MqTopicManager::getInstance().addTopic(topic, t, getptr())
+	MqTopicManager::getInstance().addTopic(topic, t, getptr());
 
 	return *this;
 }
@@ -59,7 +59,7 @@ MqTopic::MqTopic(const string & topic):_topic(topic){}
 
 MqConsumerManager &MqConsumerManager::getInstance() {
 	static MqConsumerManager instance;
-	return instance
+	return instance;
 }
 
 void MqConsumerManager::addConsumer(shared_ptr<MqConsumer> c) {
@@ -68,7 +68,7 @@ void MqConsumerManager::addConsumer(shared_ptr<MqConsumer> c) {
 
 MqProducerManager &MqProducerManager::getInstance() {
 	static MqProducerManager instance;
-	return instance
+	return instance;
 }
 
 void MqProducerManager::addProducer(shared_ptr<MqProducer> p) {
@@ -77,10 +77,10 @@ void MqProducerManager::addProducer(shared_ptr<MqProducer> p) {
 
 MqTopicManager &MqTopicManager::getInstance() {
 	static MqTopicManager instance;
-	return instance
+	return instance;
 }
 
-shared_ptr<MqTopic> MqTopicManager::getTopic(string & topic) {
+shared_ptr<MqTopic> MqTopicManager::getTopic(const string & topic) {
 	auto it = __topics.find(topic);
 	if (it == __topics.end()){
 		return nullptr;
@@ -89,16 +89,28 @@ shared_ptr<MqTopic> MqTopicManager::getTopic(string & topic) {
 	return it->second;
 }
 
+shared_ptr<MqProducer> MqTopicManager::getProducer(const string & topic) {
+	auto it = __producers.find(topic);
+	if (it == __producers.end()){
+		return nullptr;
+	}
+
+	return it->second;
+}
+
+
 void MqTopicManager::addTopic(const string & topic, shared_ptr<MqTopic> t, shared_ptr<MqProducer> p){
-	__topics.insert(make_pair(topic, make_pair(t, p));
+	__topics.insert(make_pair(topic, t));
+	__producers.insert(make_pair(topic, p));
 }
 
 unsigned int MQ_Publish(const string & topic, const string & message, void *param) {
+	auto p = MqTopicManager::getInstance().getProducer(topic);
 	auto t = MqTopicManager::getInstance().getTopic(topic);
-	if (t == nullptr) {
+	if (t == nullptr || p == nullptr) {
 		return 1;
 	}
 
-	return t->first.publishMessage(t->second, message, param);
+	return p->publishMessage(t, message, param);
 }
 

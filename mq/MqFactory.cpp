@@ -3,16 +3,14 @@
 #include "MqFactory.h"
 
 MqFactory::MqFactory(){}
-MqFactory::~MqFactory(){
-	__mqInfo.clear();
-}
+MqFactory::~MqFactory(){}
 
 MqFactory & MqFactory::getInstance() {
     static MqFactory instance;
     return instance;
 }
 
-unsigned int MqFactory::registerMqInfo(const string & type, MqFactoryBase *mqInfo){
+unsigned int MqFactory::registerMqInfo(const string & type, MqFactory *mqInfo){
 	__mqInfo = mqInfo;
     return 0;
 }

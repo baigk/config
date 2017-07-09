@@ -4,6 +4,9 @@
 
 class MqFactory {
 public:
+    MqFactory();
+    virtual ~MqFactory();
+	static MqFactory & getInstance();
 	virtual shared_ptr<MqConsumer> createConsumer(const MqConfig & config = MqConfig());
 	
 	virtual shared_ptr<MqProducer> createProducer(const MqConfig & config = MqConfig());

@@ -19,7 +19,8 @@ class KafkaConsumer : public MqConsumer
 	public:
 		~KafkaConsumer();
 		void conf_dump();
-		KafkaConsumer(MqConfig & config);
+		KafkaConsumer(const MqConfig & config);
+		KafkaConsumer();
 
 		unsigned int runFlag() {return __run;}
 		void setRunFlag(unsigned int flag) {__run = flag;}

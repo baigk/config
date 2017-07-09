@@ -27,7 +27,7 @@ public:
 	}
 	virtual ~KafkaConfig(){}
 
-	shared_ptr<RdKafka::Conf> getKafkaConig() {return _conf;}
+	shared_ptr<RdKafka::Conf> getKafkaConfig() {return _conf;}
 
 protected:
 	shared_ptr<RdKafka::Conf> _conf;
