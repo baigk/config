@@ -19,16 +19,16 @@ class KafkaConsumer : public MqConsumer
 	public:
 		~KafkaConsumer();
 		void conf_dump();
-		KafkaConsumer(shared_ptr<RdKafka::Conf> global, shared_ptr<RdKafka::Conf> toipc);
+		KafkaConsumer(MqConfig & config);
 
 		unsigned int runFlag() {return __run;}
 		void setRunFlag(unsigned int flag) {__run = flag;}
 
 		RdKafka::KafkaConsumer *getConsumer(){return __consumer;}
-         unsigned int subscribe(const string & topic);
+        unsigned int subscribe(const string & topic);
 	private:
-		shared_ptr<RdKafka::Conf> __globalConf;
-		shared_ptr<RdKafka::Conf> __topicConf;
+		shared_ptr<KafkaGlobalConfig> __globalConf;
+		shared_ptr<KafkaTopicConfig> __topicConf;
 		RdKafka::KafkaConsumer *__consumer;
 		ConsumeCb *__consumeCb;
 		ExampleEventCb * __eventCb;

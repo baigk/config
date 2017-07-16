@@ -12,22 +12,30 @@ MqFactory & MqFactory::getInstance() {
     return instance;
 }
 
-unsigned int MqFactory::registerMqInfo(const string & type, const MqInfo  & mqInfo){
-	__mqInfo[type] = mqInfo;
+unsigned int MqFactory::registerMqInfo(const string & type, MqFactoryBase *mqInfo){
+	__mqInfo = mqInfo;
     return 0;
 }
 
-shared_ptr<MqConsumer>  MqFactory::createConsumer(const string & type = "kafka", const MqConfig & config) {
-	auto it = __mqInfo.find(type);
-	if (it == __mqInfo.end()) return nullptr;
-
-	return it->second.createConsumerFunc(config);
+#if 0
+void  MqFactory::addConsumer(shared_ptr<MqConsumer> consumer) {
+	__consumers.emplace_back(consumer);
 }
 
-shared_ptr<MqProducer>  MqFactory::createProducer(const string & type = "kafka", const MqConfig & config) {
-	auto it = __mqInfo.find(type);
-	if (it == __mqInfo.end()) return nullptr;
-
-	return it->second.createProducerFunc(config);
+void  MqFactory::addProducer(shared_ptr<MqProducer> producer) {
+	__producers.emplace_back(producer);
 }
+
+void  MqFactory::addTopic(const string & topic, shared_ptr<MqTopic> topic) {
+	__topics.insert(make_pair(topic, topic);
+}
+
+
+shared_ptr<MqTopic> MqFactory::getTopic(const string & topic) {
+	auto it = __topics.find(topic);
+	if (it ==  __topics.end()) return nullptr;
+
+	return it->second;
+}
+#endif
 

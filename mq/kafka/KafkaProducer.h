@@ -24,9 +24,9 @@ public:
 	KafkaProducer(const MqConfig & config = MqConfig());
 	virtual ~KafkaProducer();
 
-	unsigned int publishMessage(const string &topic, const string & message, void *param = nullptr);
+	unsigned int publishMessage(shared_ptr<MqTopic> t, const string & message, void *param = nullptr);
 
+	virtual shared_ptr<MqTopic> createTopicEx(const string & topic);
 private:
 	shared_ptr<RdKafka::Producer> __producer;
-	shared_ptr<KafkaProducerConfig> __conf;
 };

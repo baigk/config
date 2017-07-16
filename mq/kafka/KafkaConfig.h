@@ -27,15 +27,10 @@ public:
 	}
 	virtual ~KafkaConfig(){}
 
-    bool operator == (KafkaConfig & config) {
-        return true;
-    }
-
 	shared_ptr<RdKafka::Conf> getKafkaConig() {return _conf;}
 
 protected:
 	shared_ptr<RdKafka::Conf> _conf;
-    MqConfig  __config;
 };
 
 class KafkaGlobalConfig : public KafkaConfig {
@@ -52,15 +47,5 @@ public:
 		_conf = shared_ptr<RdKafka::Conf>(RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC));
 		set(config);
 	}
-};
-
-class KafkaProducerConfig : public KafkaGlobalConfig {
-public:
-	KafkaProducerConfig(const MqConfig & config = MqConfig()) : KafkaGlobalConfig(config) {}
-};
-
-class KafkaConsumerConfig : public KafkaGlobalConfig {
-public:
-	KafkaConsumerConfig(const MqConfig & config = MqConfig()) : KafkaGlobalConfig(config) {}
 };
 

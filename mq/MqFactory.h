@@ -1,30 +1,34 @@
 #pragma once
 
-#include <unordered_map>
 #include "Mq.h"
 
-typedef shared_ptr<MqConsumer> (* CreateConsumerFunc)(const MqConfig &);
-typedef shared_ptr<MqProducer> (* CreateProducerFunc)(const MqConfig &);
+class MqFactory {
+public:
+	virtual shared_ptr<MqConsumer> createConsumer(const MqConfig & config = MqConfig());
+	
+	virtual shared_ptr<MqProducer> createProducer(const MqConfig & config = MqConfig());
+	
+	unsigned int registerMqInfo(const string & type, MqFactory * mqInfo);
+	
+private:
+	
+	MqFactory * __mqInfo;
+};
 
-typedef struct tagMqInfo {
-	CreateConsumerFunc createConsumerFunc;
-	CreateProducerFunc createProducerFunc;
-}MqInfo;
-
+#if 0
 class MqFactory
 {
-    MqFactory & getInstance();
+    static MqFactoryBase * getFactory(const string & type = "kafka");
+
+	static MqFactory & getInstance();
 
 public:
 	MqFactory();
 	virtual ~MqFactory();
 
-	shared_ptr<MqConsumer> createConsumer(const string & type, const MqConfig & config = MqConfig());
-
-	shared_ptr<MqProducer> createProducer(const string & type, const MqConfig & config = MqConfig());
-
-	unsigned int registerMqInfo(const string & type, const MqInfo & mqInfo) ;
+    unsigned int registerMqInfo(const string & type, MqFactoryBase * mqInfo);
 
 private:
-	unordered_map<string, MqInfo> __mqInfo;
+    unordered_map<string, MqFactoryBase *> __mqInfo;
 };
+#endif

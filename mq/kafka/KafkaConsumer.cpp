@@ -1,6 +1,7 @@
 
 #include "KafkaConsumer.h"
-#include "KafkaTopics.h"
+#include "KafkaTopic.h"
+#include "unistd.h"
 
 void msg_consume(RdKafka::Message* message, void* opaque) {
     switch (message->err()) {
@@ -73,6 +74,9 @@ KafkaConsumer::KafkaConsumer(shared_ptr<RdKafka::Conf> global, shared_ptr<RdKafk
 	conf->set("compression.codec", optarg, errstr)  
 	conf->set("statistics.interval.ms", optarg, errstr) 
 	#endif
+
+	__globalConf = make_shared<KafkaGlobalConfig>(config);
+	__topicConf = make_shared<KafkaTopicConfig>(config);
   
 	__consumeCb  = new ConsumeCb;
 	__eventCb = new ExampleEventCb;
@@ -92,12 +96,14 @@ KafkaConsumer::KafkaConsumer(shared_ptr<RdKafka::Conf> global, shared_ptr<RdKafk
 		cout << "config fail " << ret << " " << "consume_cb"  << " " << errstr << endl;
 	}
 
+	#if 0
+
 	ret = global->set("default_topic_conf", topic, errstr);
 	if (ret != RdKafka::Conf::CONF_OK) {
 		cout << "config fail " << ret << " " << "consume_cb"  << " " << errstr << endl;
 	}
 
-    #if 0
+
 	vector<string> topics = {"test", "test1"};
 	RdKafka::ErrorCode err  = __consumer->subscribe(topics);
 	if (err) {
@@ -126,7 +132,7 @@ KafkaConsumer::KafkaConsumer(shared_ptr<RdKafka::Conf> global, shared_ptr<RdKafk
 }
 
 unsigned int KafkaConsumer::subscribe(const string & topic) {
-     RdKafka::ErrorCode err  = __consumer->subscribe(topics);
+     RdKafka::ErrorCode err  = __consumer->subscribe(topic);
      if (err) {
           cout << "Failed to subscribe to " << topics.size() << " topics: "
                << RdKafka::err2str(err) << endl;
